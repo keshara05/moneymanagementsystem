@@ -302,17 +302,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (err) { console.error(err); } finally { hideLoading(); }
     };
 
-    document.getElementById('clear-data-btn').addEventListener('click', async () => {
-        const msg = state.lang === 'si' ? 'සියලුම දත්ත මකන්නද?' : 'Are you sure you want to clear ALL data?';
-        if(confirm(msg)) {
-            showLoading();
-            try {
-                await fetch(`${API_URL}/clear-all`, { method: 'DELETE' });
-                state.incomes = []; state.expenses = [];
-                calculateTotals(); updateUI();
-            } catch (err) { console.error(err); } finally { hideLoading(); }
-        }
-    });
+
 
     // --- UI Update ---
     const updateUI = () => {
