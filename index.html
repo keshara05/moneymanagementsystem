@@ -1,55 +1,82 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Financial Management System</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>FinanceTracker Sri Lanka</title>
     <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600&family=Noto+Sans+Sinhala:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
+    <!-- Background Animation Elements -->
+    <div class="bg-shape shape-1"></div>
+    <div class="bg-shape shape-2"></div>
+
     <!-- Loading Overlay -->
     <div id="loading-overlay" class="loading-overlay">
         <div class="spinner"></div>
-        <p>Syncing with Database...</p>
+        <p data-i18n="syncing">Syncing with Database...</p>
     </div>
+
+    <!-- Top Navigation Bar -->
+    <nav class="top-nav">
+        <div class="nav-container">
+            <div class="logo">
+                <i class="fa-solid fa-wallet"></i> <span data-i18n="app_title">FinanceTracker</span>
+            </div>
+            <div class="nav-controls">
+                <button id="lang-toggle" class="icon-btn" title="Change Language">
+                    <span id="current-lang">EN</span>
+                </button>
+                <button id="theme-toggle" class="icon-btn" title="Toggle Theme">
+                    <i class="fa-solid fa-moon" id="theme-icon"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
 
     <div class="app-container">
         <header>
-            <h1><i class="fa-solid fa-wallet"></i> FinanceTracker</h1>
-            <p>Smart money management with Cloud Sync</p>
+            <h1 data-i18n="main_heading">Smart Money Management</h1>
+            <p data-i18n="sub_heading">Manage your class fees easily</p>
         </header>
 
-        <main>
+        <!-- Tab Navigation -->
+        <div class="tab-container">
+            <button class="tab-btn active" onclick="switchTab('dashboard')" data-i18n="tab_dashboard">Dashboard</button>
+            <button class="tab-btn" onclick="switchTab('reports')" data-i18n="tab_reports">Monthly Reports</button>
+        </div>
+
+        <main id="tab-dashboard" class="tab-content active">
             <!-- Section 1: Income Tracker & Budget Summary -->
             <div class="main-grid" style="margin-bottom: 2rem;">
-                <section class="card tracker-section" style="margin-bottom: 0;">
-                    <h2><i class="fa-solid fa-hand-holding-dollar"></i> Daily Income Tracker</h2>
+                <section class="card tracker-section">
+                    <h2><i class="fa-solid fa-hand-holding-dollar"></i> <span data-i18n="daily_income">Daily Income Tracker</span></h2>
                     <form id="income-form" class="expense-form">
                         <div class="form-group">
-                            <label for="income-date">Date</label>
+                            <label for="income-date" data-i18n="date">Date</label>
                             <input type="date" id="income-date" required>
                         </div>
                         <div class="form-group">
-                            <label for="income-desc">Class / Description</label>
+                            <label for="income-desc" data-i18n="class_desc">Class / Description</label>
                             <input type="text" id="income-desc" placeholder="e.g. Grade 10 Science" required>
                         </div>
-                        <div class="form-group" style="grid-column: span 2;">
-                            <label for="income-amount">Amount Received</label>
+                        <div class="form-group full-width">
+                            <label for="income-amount" data-i18n="amount_received">Amount Received</label>
                             <input type="number" id="income-amount" placeholder="0.00" min="0" step="0.01" required>
                         </div>
-                        <button type="submit" class="submit-btn income-btn"><i class="fa-solid fa-plus"></i> Add Income</button>
+                        <button type="submit" class="submit-btn income-btn full-width"><i class="fa-solid fa-plus"></i> <span data-i18n="add_income">Add Income</span></button>
                     </form>
 
-                    <div class="table-container" style="max-height: 250px; overflow-y: auto;">
+                    <div class="table-container">
                         <table id="incomes-table">
                             <thead>
                                 <tr>
-                                    <th>Date</th>
-                                    <th>Class</th>
-                                    <th>Amount</th>
-                                    <th>Action</th>
+                                    <th data-i18n="date">Date</th>
+                                    <th data-i18n="class_desc">Class</th>
+                                    <th data-i18n="amount">Amount</th>
+                                    <th data-i18n="action">Action</th>
                                 </tr>
                             </thead>
                             <tbody id="incomes-list">
@@ -58,30 +85,30 @@
                         </table>
                         <div id="empty-income-state" class="empty-state">
                             <i class="fa-regular fa-folder-open"></i>
-                            <p>No incomes logged yet.</p>
+                            <p data-i18n="no_incomes">No incomes logged yet.</p>
                         </div>
                     </div>
                 </section>
 
-                <section class="card budget-section" style="margin-bottom: 0;">
-                    <h2><i class="fa-solid fa-calculator"></i> Budget Allocation</h2>
+                <section class="card budget-section">
+                    <h2><i class="fa-solid fa-calculator"></i> <span data-i18n="budget_allocation">Budget Allocation</span></h2>
                     <div class="total-income-display">
-                        <p>Total Monthly Income</p>
-                        <h2 id="total-income-amount">$0.00</h2>
+                        <p data-i18n="total_monthly_income">Total Monthly Income</p>
+                        <h2 id="total-income-amount">Rs. 0.00</h2>
                     </div>
                     
                     <div class="budget-breakdown">
                         <div class="breakdown-card savings">
-                            <h3>Savings (20%)</h3>
-                            <p class="amount" id="savings-amount">$0.00</p>
+                            <h3 data-i18n="savings">Savings (20%)</h3>
+                            <p class="amount" id="savings-amount">Rs. 0.00</p>
                         </div>
                         <div class="breakdown-card needs">
-                            <h3>Needs/Expenses (50%)</h3>
-                            <p class="amount" id="needs-amount">$0.00</p>
+                            <h3 data-i18n="needs">Needs/Expenses (50%)</h3>
+                            <p class="amount" id="needs-amount">Rs. 0.00</p>
                         </div>
                         <div class="breakdown-card wants">
-                            <h3>Wants (30%)</h3>
-                            <p class="amount" id="wants-amount">$0.00</p>
+                            <h3 data-i18n="wants">Wants (30%)</h3>
+                            <p class="amount" id="wants-amount">Rs. 0.00</p>
                         </div>
                     </div>
                 </section>
@@ -90,40 +117,40 @@
             <div class="main-grid">
                 <!-- Section 2: Daily Expense Tracker -->
                 <section class="card tracker-section">
-                    <h2><i class="fa-solid fa-cart-shopping"></i> Daily Expense Tracker</h2>
+                    <h2><i class="fa-solid fa-cart-shopping"></i> <span data-i18n="daily_expense">Daily Expense Tracker</span></h2>
                     <form id="expense-form" class="expense-form">
                         <div class="form-group">
-                            <label for="expense-date">Date</label>
+                            <label for="expense-date" data-i18n="date">Date</label>
                             <input type="date" id="expense-date" required>
                         </div>
                         <div class="form-group">
-                            <label for="expense-desc">Description</label>
+                            <label for="expense-desc" data-i18n="description">Description</label>
                             <input type="text" id="expense-desc" placeholder="e.g. Groceries" required>
                         </div>
                         <div class="form-group">
-                            <label for="expense-category">Category</label>
+                            <label for="expense-category" data-i18n="category">Category</label>
                             <select id="expense-category" required>
-                                <option value="" disabled selected>Select...</option>
-                                <option value="need">Need / Expense</option>
-                                <option value="want">Want</option>
+                                <option value="" disabled selected data-i18n="select">Select...</option>
+                                <option value="need" data-i18n="need_option">Need / Expense</option>
+                                <option value="want" data-i18n="want_option">Want</option>
                             </select>
                         </div>
                         <div class="form-group">
-                            <label for="expense-amount">Amount</label>
+                            <label for="expense-amount" data-i18n="amount">Amount</label>
                             <input type="number" id="expense-amount" placeholder="0.00" min="0" step="0.01" required>
                         </div>
-                        <button type="submit" class="submit-btn"><i class="fa-solid fa-plus"></i> Add Expense</button>
+                        <button type="submit" class="submit-btn full-width"><i class="fa-solid fa-plus"></i> <span data-i18n="add_expense">Add Expense</span></button>
                     </form>
 
-                    <div class="table-container" style="max-height: 400px; overflow-y: auto;">
+                    <div class="table-container">
                         <table id="expenses-table">
                             <thead>
                                 <tr>
-                                    <th>Date</th>
-                                    <th>Description</th>
-                                    <th>Category</th>
-                                    <th>Amount</th>
-                                    <th>Action</th>
+                                    <th data-i18n="date">Date</th>
+                                    <th data-i18n="description">Description</th>
+                                    <th data-i18n="category">Category</th>
+                                    <th data-i18n="amount">Amount</th>
+                                    <th data-i18n="action">Action</th>
                                 </tr>
                             </thead>
                             <tbody id="expenses-list">
@@ -132,60 +159,114 @@
                         </table>
                         <div id="empty-state" class="empty-state">
                             <i class="fa-regular fa-folder-open"></i>
-                            <p>No expenses logged yet.</p>
+                            <p data-i18n="no_expenses">No expenses logged yet.</p>
                         </div>
                     </div>
                 </section>
 
                 <!-- Section 3: Balance Summary -->
                 <section class="card summary-section">
-                    <h2><i class="fa-solid fa-chart-pie"></i> Balance Summary</h2>
+                    <h2><i class="fa-solid fa-chart-pie"></i> <span data-i18n="balance_summary">Balance Summary</span></h2>
                     <div class="summary-cards">
                         <div class="summary-card needs-summary">
                             <div class="summary-header">
-                                <h3>Needs Balance</h3>
+                                <h3 data-i18n="needs_balance">Needs Balance</h3>
                                 <i class="fa-solid fa-bolt"></i>
                             </div>
                             <div class="summary-body">
-                                <p>Allocated: <span id="summary-allocated-needs">$0.00</span></p>
-                                <p>Spent: <span id="summary-spent-needs">$0.00</span></p>
+                                <p><span data-i18n="allocated">Allocated:</span> <span class="val" id="summary-allocated-needs">Rs. 0.00</span></p>
+                                <p><span data-i18n="spent">Spent:</span> <span class="val" id="summary-spent-needs">Rs. 0.00</span></p>
                                 <div class="progress-bar-container">
                                     <div class="progress-bar" id="progress-needs"></div>
                                 </div>
-                                <h4 class="remaining">Remaining: <span id="summary-remaining-needs">$0.00</span></h4>
+                                <h4 class="remaining"><span data-i18n="remaining">Remaining:</span> <span class="val" id="summary-remaining-needs">Rs. 0.00</span></h4>
                             </div>
                         </div>
 
                         <div class="summary-card wants-summary">
                             <div class="summary-header">
-                                <h3>Wants Balance</h3>
+                                <h3 data-i18n="wants_balance">Wants Balance</h3>
                                 <i class="fa-solid fa-heart"></i>
                             </div>
                             <div class="summary-body">
-                                <p>Allocated: <span id="summary-allocated-wants">$0.00</span></p>
-                                <p>Spent: <span id="summary-spent-wants">$0.00</span></p>
+                                <p><span data-i18n="allocated">Allocated:</span> <span class="val" id="summary-allocated-wants">Rs. 0.00</span></p>
+                                <p><span data-i18n="spent">Spent:</span> <span class="val" id="summary-spent-wants">Rs. 0.00</span></p>
                                 <div class="progress-bar-container">
                                     <div class="progress-bar" id="progress-wants"></div>
                                 </div>
-                                <h4 class="remaining">Remaining: <span id="summary-remaining-wants">$0.00</span></h4>
+                                <h4 class="remaining"><span data-i18n="remaining">Remaining:</span> <span class="val" id="summary-remaining-wants">Rs. 0.00</span></h4>
                             </div>
                         </div>
                         
                         <div class="summary-card total-summary">
                             <div class="summary-header">
-                                <h3>Total Monthly Spent</h3>
+                                <h3 data-i18n="total_monthly_spent">Total Monthly Spent</h3>
                                 <i class="fa-solid fa-money-bill-wave"></i>
                             </div>
                             <div class="summary-body total-spent-body">
-                                <h2 class="total-amount" id="total-spent-amount">$0.00</h2>
+                                <h2 class="total-amount" id="total-spent-amount">Rs. 0.00</h2>
                             </div>
                         </div>
                     </div>
-                    <div class="controls">
-                        <button id="clear-data-btn" class="danger-btn"><i class="fa-solid fa-trash-can"></i> Clear All Cloud Data</button>
-                    </div>
                 </section>
             </div>
+            
+            <div class="controls">
+                <button id="clear-data-btn" class="danger-btn"><i class="fa-solid fa-trash-can"></i> <span data-i18n="clear_all">Clear All Cloud Data</span></button>
+            </div>
+        </main>
+
+        <!-- Reports Tab -->
+        <main id="tab-reports" class="tab-content">
+            <section class="card">
+                <h2><i class="fa-solid fa-file-invoice-dollar"></i> <span data-i18n="monthly_report_title">Monthly Report Filter</span></h2>
+                <div class="report-filter">
+                    <div class="form-group">
+                        <label for="report-month" data-i18n="select_month">Select Month</label>
+                        <input type="month" id="report-month">
+                    </div>
+                    <button id="generate-report-btn" class="submit-btn"><i class="fa-solid fa-search"></i> <span data-i18n="generate_report">Generate Report</span></button>
+                </div>
+
+                <div id="report-results" style="display: none; margin-top: 2rem;">
+                    <h3 class="report-month-title" id="report-display-month">April 2026</h3>
+                    <div class="report-grid">
+                        <div class="report-card primary">
+                            <h4 data-i18n="total_income">Total Income</h4>
+                            <h2 id="rep-income">Rs. 0.00</h2>
+                        </div>
+                        <div class="report-card danger">
+                            <h4 data-i18n="total_expense">Total Expense</h4>
+                            <h2 id="rep-expense">Rs. 0.00</h2>
+                        </div>
+                        <div class="report-card success">
+                            <h4 data-i18n="net_savings">Net Savings</h4>
+                            <h2 id="rep-savings">Rs. 0.00</h2>
+                        </div>
+                    </div>
+                    
+                    <div class="report-details-grid">
+                        <div>
+                            <h4 data-i18n="income_breakdown" style="margin-bottom:1rem;">Income Breakdown</h4>
+                            <div class="table-container">
+                                <table id="rep-income-table">
+                                    <thead><tr><th data-i18n="date">Date</th><th data-i18n="class_desc">Class</th><th data-i18n="amount">Amount</th></tr></thead>
+                                    <tbody id="rep-income-list"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div>
+                            <h4 data-i18n="expense_breakdown" style="margin-bottom:1rem;">Expense Breakdown</h4>
+                            <div class="table-container">
+                                <table id="rep-expense-table">
+                                    <thead><tr><th data-i18n="date">Date</th><th data-i18n="description">Desc</th><th data-i18n="amount">Amount</th></tr></thead>
+                                    <tbody id="rep-expense-list"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
         </main>
     </div>
     <script src="script.js"></script>
