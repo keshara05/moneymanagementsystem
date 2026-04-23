@@ -12,13 +12,28 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Database Connection
-mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/financeTracker', {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
-})
-.then(() => console.log('Connected to MongoDB'))
-.catch(err => console.error('MongoDB connection error:', err));
+// Serverless MongoDB Connection Logic
+let isConnected = false;
+const connectDB = async () => {
+    if (isConnected) return;
+    try {
+        const db = await mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/financeTracker', {
+            useNewUrlParser: true,
+            useUnifiedTopology: true,
+            serverSelectionTimeoutMS: 5000 // Fail fast if no connection
+        });
+        isConnected = !!db.connections[0].readyState;
+        console.log('Connected to MongoDB (Serverless)');
+    } catch (err) {
+        console.error('MongoDB connection error:', err);
+    }
+};
+
+// Middleware to ensure DB connection on every request
+app.use(async (req, res, next) => {
+    await connectDB();
+    next();
+});
 
 // --- INCOME ROUTES ---
 
