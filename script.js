@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // API URL - Change this to your deployed Render URL later
-    const API_URL = 'http://localhost:5000/api';
+    // API URL - Uses relative path for Vercel Serverless
+    const API_URL = '/api';
 
     // DOM Elements - Income
     const incomeForm = document.getElementById('income-form');
