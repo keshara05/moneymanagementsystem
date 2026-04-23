@@ -91,7 +91,14 @@ document.addEventListener('DOMContentLoaded', () => {
             income_breakdown: "Income Breakdown",
             expense_breakdown: "Expense Breakdown",
             need_badge: "Need",
-            want_badge: "Want"
+            want_badge: "Want",
+            deposit_calculator_title: "Bank Deposit Calculator",
+            deposit_calculator_desc: "Select a date range to calculate deposit percentages for accumulated class fees.",
+            start_date: "Start Date",
+            end_date: "End Date",
+            calculate: "Calculate",
+            selected_period_income: "Total Income in Selected Period",
+            deposit_split: "Deposit Split:"
         },
         si: {
             app_title: "මූල්‍ය කළමනාකරු",
@@ -138,7 +145,14 @@ document.addEventListener('DOMContentLoaded', () => {
             income_breakdown: "ආදායම් විස්තරය",
             expense_breakdown: "වියදම් විස්තරය",
             need_badge: "අවශ්‍යතා",
-            want_badge: "වුවමනා"
+            want_badge: "වුවමනා",
+            deposit_calculator_title: "බැංකු තැන්පතු ගණනය",
+            deposit_calculator_desc: "දින කිහිපයක එකතු වූ පන්ති ගාස්තු බැංකුවට දැමීමට පෙර ප්‍රතිශත වෙන්කර ගැනීමට දින පරාසයක් තෝරන්න.",
+            start_date: "ආරම්භක දිනය",
+            end_date: "අවසන් දිනය",
+            calculate: "ගණනය කරන්න",
+            selected_period_income: "තෝරාගත් කාලයේ මුළු ආදායම",
+            deposit_split: "බැංකුවට දැමිය යුතු අයුරු:"
         }
     };
 
@@ -427,6 +441,43 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         document.getElementById('report-results').style.display = 'block';
+    });
+
+    // --- Bank Deposit Calculator Logic ---
+    document.getElementById('calculate-deposit-btn').addEventListener('click', () => {
+        const startVal = document.getElementById('calc-start-date').value;
+        const endVal = document.getElementById('calc-end-date').value;
+        
+        if (!startVal || !endVal) {
+            alert(state.lang === 'si' ? 'කරුණාකර දින දෙකම තෝරන්න.' : 'Please select both start and end dates.');
+            return;
+        }
+
+        const startDate = new Date(startVal);
+        startDate.setHours(0,0,0,0);
+        
+        const endDate = new Date(endVal);
+        endDate.setHours(23,59,59,999);
+
+        if (startDate > endDate) {
+            alert(state.lang === 'si' ? 'ආරම්භක දිනය අවසන් දිනයට පෙර විය යුතුය.' : 'Start date must be before end date.');
+            return;
+        }
+
+        // Filter incomes within the range
+        const periodIncomes = state.incomes.filter(inc => {
+            const incDate = new Date(inc.date);
+            return incDate >= startDate && incDate <= endDate;
+        });
+
+        const periodTotal = periodIncomes.reduce((a, c) => a + c.amount, 0);
+
+        document.getElementById('calc-total-income').textContent = currencyFormatter.format(periodTotal);
+        document.getElementById('calc-savings').textContent = currencyFormatter.format(periodTotal * 0.20);
+        document.getElementById('calc-needs').textContent = currencyFormatter.format(periodTotal * 0.50);
+        document.getElementById('calc-wants').textContent = currencyFormatter.format(periodTotal * 0.30);
+
+        document.getElementById('deposit-results').style.display = 'block';
     });
 
     // --- Initialization ---

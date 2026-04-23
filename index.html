@@ -267,6 +267,47 @@
                     </div>
                 </div>
             </section>
+            
+            <section class="card" style="margin-top: 2rem;">
+                <h2><i class="fa-solid fa-building-columns"></i> <span data-i18n="deposit_calculator_title">Bank Deposit Calculator</span></h2>
+                <p style="color: var(--text-secondary); margin-bottom: 1.5rem; font-size: 0.95rem;" data-i18n="deposit_calculator_desc">Select a date range to calculate deposit percentages for accumulated class fees.</p>
+                
+                <div class="report-filter">
+                    <div class="form-group">
+                        <label for="calc-start-date" data-i18n="start_date">Start Date</label>
+                        <input type="date" id="calc-start-date">
+                    </div>
+                    <div class="form-group">
+                        <label for="calc-end-date" data-i18n="end_date">End Date</label>
+                        <input type="date" id="calc-end-date">
+                    </div>
+                    <button id="calculate-deposit-btn" class="submit-btn"><i class="fa-solid fa-calculator"></i> <span data-i18n="calculate">Calculate</span></button>
+                </div>
+
+                <div id="deposit-results" style="display: none; margin-top: 2rem;">
+                    <div class="total-income-display" style="border-color: var(--accent-primary);">
+                        <p data-i18n="selected_period_income">Total Income in Selected Period</p>
+                        <h2 id="calc-total-income" style="color: var(--accent-primary);">Rs. 0.00</h2>
+                    </div>
+                    
+                    <h3 style="margin-bottom: 1rem; text-align: center; color: var(--text-secondary);" data-i18n="deposit_split">Deposit Split:</h3>
+                    
+                    <div class="budget-breakdown">
+                        <div class="breakdown-card savings">
+                            <h3 data-i18n="savings">Savings (20%)</h3>
+                            <p class="amount" id="calc-savings">Rs. 0.00</p>
+                        </div>
+                        <div class="breakdown-card needs">
+                            <h3 data-i18n="needs">Needs/Expenses (50%)</h3>
+                            <p class="amount" id="calc-needs">Rs. 0.00</p>
+                        </div>
+                        <div class="breakdown-card wants">
+                            <h3 data-i18n="wants">Wants (30%)</h3>
+                            <p class="amount" id="calc-wants">Rs. 0.00</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
         </main>
     </div>
     <script src="script.js"></script>
