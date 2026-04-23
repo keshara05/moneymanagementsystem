@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Financial Management System</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="loading-overlay">
+        <div class="spinner"></div>
+        <p>Syncing with Database...</p>
+    </div>
+
+    <div class="app-container">
+        <header>
+            <h1><i class="fa-solid fa-wallet"></i> FinanceTracker</h1>
+            <p>Smart money management with Cloud Sync</p>
+        </header>
+
+        <main>
+            <!-- Section 1: Income Tracker & Budget Summary -->
+            <div class="main-grid" style="margin-bottom: 2rem;">
+                <section class="card tracker-section" style="margin-bottom: 0;">
+                    <h2><i class="fa-solid fa-hand-holding-dollar"></i> Daily Income Tracker</h2>
+                    <form id="income-form" class="expense-form">
+                        <div class="form-group">
+                            <label for="income-date">Date</label>
+                            <input type="date" id="income-date" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="income-desc">Class / Description</label>
+                            <input type="text" id="income-desc" placeholder="e.g. Grade 10 Science" required>
+                        </div>
+                        <div class="form-group" style="grid-column: span 2;">
+                            <label for="income-amount">Amount Received</label>
+                            <input type="number" id="income-amount" placeholder="0.00" min="0" step="0.01" required>
+                        </div>
+                        <button type="submit" class="submit-btn income-btn"><i class="fa-solid fa-plus"></i> Add Income</button>
+                    </form>
+
+                    <div class="table-container" style="max-height: 250px; overflow-y: auto;">
+                        <table id="incomes-table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Class</th>
+                                    <th>Amount</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="incomes-list">
+                                <!-- Dynamic rows -->
+                            </tbody>
+                        </table>
+                        <div id="empty-income-state" class="empty-state">
+                            <i class="fa-regular fa-folder-open"></i>
+                            <p>No incomes logged yet.</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="card budget-section" style="margin-bottom: 0;">
+                    <h2><i class="fa-solid fa-calculator"></i> Budget Allocation</h2>
+                    <div class="total-income-display">
+                        <p>Total Monthly Income</p>
+                        <h2 id="total-income-amount">$0.00</h2>
+                    </div>
+                    
+                    <div class="budget-breakdown">
+                        <div class="breakdown-card savings">
+                            <h3>Savings (20%)</h3>
+                            <p class="amount" id="savings-amount">$0.00</p>
+                        </div>
+                        <div class="breakdown-card needs">
+                            <h3>Needs/Expenses (50%)</h3>
+                            <p class="amount" id="needs-amount">$0.00</p>
+                        </div>
+                        <div class="breakdown-card wants">
+                            <h3>Wants (30%)</h3>
+                            <p class="amount" id="wants-amount">$0.00</p>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <div class="main-grid">
+                <!-- Section 2: Daily Expense Tracker -->
+                <section class="card tracker-section">
+                    <h2><i class="fa-solid fa-cart-shopping"></i> Daily Expense Tracker</h2>
+                    <form id="expense-form" class="expense-form">
+                        <div class="form-group">
+                            <label for="expense-date">Date</label>
+                            <input type="date" id="expense-date" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="expense-desc">Description</label>
+                            <input type="text" id="expense-desc" placeholder="e.g. Groceries" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="expense-category">Category</label>
+                            <select id="expense-category" required>
+                                <option value="" disabled selected>Select...</option>
+                                <option value="need">Need / Expense</option>
+                                <option value="want">Want</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="expense-amount">Amount</label>
+                            <input type="number" id="expense-amount" placeholder="0.00" min="0" step="0.01" required>
+                        </div>
+                        <button type="submit" class="submit-btn"><i class="fa-solid fa-plus"></i> Add Expense</button>
+                    </form>
+
+                    <div class="table-container" style="max-height: 400px; overflow-y: auto;">
+                        <table id="expenses-table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Description</th>
+                                    <th>Category</th>
+                                    <th>Amount</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="expenses-list">
+                                <!-- Dynamic rows go here -->
+                            </tbody>
+                        </table>
+                        <div id="empty-state" class="empty-state">
+                            <i class="fa-regular fa-folder-open"></i>
+                            <p>No expenses logged yet.</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Section 3: Balance Summary -->
+                <section class="card summary-section">
+                    <h2><i class="fa-solid fa-chart-pie"></i> Balance Summary</h2>
+                    <div class="summary-cards">
+                        <div class="summary-card needs-summary">
+                            <div class="summary-header">
+                                <h3>Needs Balance</h3>
+                                <i class="fa-solid fa-bolt"></i>
+                            </div>
+                            <div class="summary-body">
+                                <p>Allocated: <span id="summary-allocated-needs">$0.00</span></p>
+                                <p>Spent: <span id="summary-spent-needs">$0.00</span></p>
+                                <div class="progress-bar-container">
+                                    <div class="progress-bar" id="progress-needs"></div>
+                                </div>
+                                <h4 class="remaining">Remaining: <span id="summary-remaining-needs">$0.00</span></h4>
+                            </div>
+                        </div>
+
+                        <div class="summary-card wants-summary">
+                            <div class="summary-header">
+                                <h3>Wants Balance</h3>
+                                <i class="fa-solid fa-heart"></i>
+                            </div>
+                            <div class="summary-body">
+                                <p>Allocated: <span id="summary-allocated-wants">$0.00</span></p>
+                                <p>Spent: <span id="summary-spent-wants">$0.00</span></p>
+                                <div class="progress-bar-container">
+                                    <div class="progress-bar" id="progress-wants"></div>
+                                </div>
+                                <h4 class="remaining">Remaining: <span id="summary-remaining-wants">$0.00</span></h4>
+                            </div>
+                        </div>
+                        
+                        <div class="summary-card total-summary">
+                            <div class="summary-header">
+                                <h3>Total Monthly Spent</h3>
+                                <i class="fa-solid fa-money-bill-wave"></i>
+                            </div>
+                            <div class="summary-body total-spent-body">
+                                <h2 class="total-amount" id="total-spent-amount">$0.00</h2>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="controls">
+                        <button id="clear-data-btn" class="danger-btn"><i class="fa-solid fa-trash-can"></i> Clear All Cloud Data</button>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
