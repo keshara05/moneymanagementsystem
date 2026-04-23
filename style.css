@@ -228,7 +228,7 @@ body {
     color: #fff;
     border-color: var(--indigo);
 }
-.nav-controls { display: flex; gap: 8px; }
+.nav-controls { display: flex; gap: 6px; flex-shrink: 0; }
 .ctrl-btn {
     width: 34px; height: 34px;
     border-radius: var(--r10);
@@ -285,7 +285,7 @@ body {
     grid-template-columns: 1.35fr 1fr;
     gap: 1.25rem;
 }
-@media (max-width: 900px)  { .dash-grid { grid-template-columns: 1fr; } }
+@media (max-width: 900px) { .dash-grid { grid-template-columns: 1fr; } }
 
 /* ─── PANELS ─────────────────────────────────────────────────── */
 .panel {
@@ -477,13 +477,14 @@ tbody tr:hover td { background: var(--card-hover); }
     letter-spacing: 0.6px;
 }
 .total-value {
-    font-size: 1.85rem;
+    font-size: clamp(1.35rem, 5vw, 1.85rem);
     font-weight: 800;
     color: var(--cyan);
     font-feature-settings: "tnum";
     letter-spacing: -0.5px;
     margin-top: 0.25rem;
     font-family: var(--mono);
+    word-break: break-all;
 }
 .total-value--indigo { color: var(--indigo-light); }
 
@@ -492,6 +493,7 @@ tbody tr:hover td { background: var(--card-hover); }
     grid-template-columns: repeat(3, 1fr);
     gap: 0.75rem;
 }
+@media (max-width: 480px) { .alloc-grid { grid-template-columns: 1fr; } }
 .alloc-card {
     padding: 1rem;
     background: var(--surface);
@@ -518,10 +520,11 @@ tbody tr:hover td { background: var(--card-hover); }
 }
 .alloc-value {
     display: block;
-    font-size: 1.05rem;
+    font-size: clamp(0.75rem, 2vw, 1.05rem);
     font-weight: 800;
     font-family: var(--mono);
     font-feature-settings: "tnum";
+    word-break: break-all;
 }
 .alloc-card--cyan  .alloc-value { color: var(--cyan); }
 .alloc-card--amber .alloc-value { color: var(--amber); }
@@ -591,15 +594,18 @@ tbody tr:hover td { background: var(--card-hover); }
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 0.75rem;
     font-size: 0.875rem;
     font-weight: 700;
+    flex-wrap: wrap;
 }
 .total-spent-card span:last-child {
-    font-size: 1.25rem;
+    font-size: clamp(1rem, 4vw, 1.25rem);
     font-weight: 800;
     color: var(--indigo-light);
     font-family: var(--mono);
     font-feature-settings: "tnum";
+    word-break: break-all;
 }
 
 /* ─── REPORTS ─────────────────────────────────────────────────── */
@@ -609,7 +615,8 @@ tbody tr:hover td { background: var(--card-hover); }
     align-items: flex-start;
     flex-wrap: wrap;
 }
-.filter-bar .field { flex: 1; min-width: 160px; }
+.filter-bar .field { flex: 1; min-width: 140px; }
+.filter-bar .add-btn { flex-shrink: 0; }
 
 .report-title {
     text-align: center;
@@ -625,7 +632,7 @@ tbody tr:hover td { background: var(--card-hover); }
     gap: 1rem;
     margin-bottom: 1.5rem;
 }
-@media (max-width: 540px) { .report-kpi-grid { grid-template-columns: 1fr; } }
+@media (max-width: 480px) { .report-kpi-grid { grid-template-columns: 1fr; gap: 0.75rem; } }
 
 .kpi-card {
     padding: 1.1rem;
@@ -642,10 +649,11 @@ tbody tr:hover td { background: var(--card-hover); }
     opacity: 0.8;
 }
 .kpi-card strong {
-    font-size: 1.4rem;
+    font-size: clamp(1rem, 3vw, 1.4rem);
     font-weight: 800;
     font-family: var(--mono);
     font-feature-settings: "tnum";
+    word-break: break-all;
 }
 .kpi-card--cyan  { background: var(--cyan-dim);  border: 1px solid var(--cyan-border);  color: var(--cyan); }
 .kpi-card--rose  { background: var(--rose-dim);  border: 1px solid var(--rose-border);  color: var(--rose); }
@@ -685,3 +693,92 @@ tbody tr:hover td { background: var(--card-hover); }
 
 /* ─── UTILITY ────────────────────────────────────────────────── */
 .mono { font-family: var(--mono); font-feature-settings: "tnum"; }
+
+/* ─── MOBILE (≤ 600px) ───────────────────────────────────────── */
+@media (max-width: 600px) {
+
+    /* Nav */
+    .nav-inner { padding: 0 0.875rem; gap: 0.5rem; }
+    .logo-badge { display: none; }
+    .logo-text { font-size: 14px; }
+    .logo-icon { width: 28px; height: 28px; font-size: 12px; }
+    .nav-tab { padding: 5px 10px; font-size: 11px; }
+    .ctrl-btn { width: 30px; height: 30px; font-size: 11px; }
+
+    /* App wrap */
+    .app-wrap { padding: 1rem 0.875rem 2.5rem; }
+
+    /* Page header */
+    .page-header { padding: 1rem 0 1.25rem; }
+    .page-header p { font-size: 0.875rem; }
+
+    /* Panels */
+    .panel { padding: 1rem; border-radius: var(--r14); }
+    .panel-header { margin-bottom: 1rem; padding-bottom: 0.75rem; }
+    .panel-header h2 { font-size: 0.875rem; }
+
+    /* Forms - all single column */
+    .field-row { grid-template-columns: 1fr; gap: 0; }
+    .field { margin-bottom: 0.65rem; }
+    /* font-size 16px stops iOS auto-zoom on focus */
+    input[type="text"],
+    input[type="number"],
+    input[type="date"],
+    input[type="month"],
+    select { font-size: 16px; padding: 0.7rem 0.875rem; }
+
+    /* Buttons */
+    .add-btn { padding: 0.875rem; font-size: 0.9rem; }
+
+    /* Tables */
+    thead th { padding: 0.55rem 0.5rem; font-size: 10px; letter-spacing: 0; }
+    tbody td { padding: 0.55rem 0.5rem; font-size: 0.8rem; }
+
+    /* Alloc cards - horizontal layout */
+    .alloc-grid { grid-template-columns: 1fr; gap: 0.6rem; }
+    .alloc-card {
+        padding: 0.875rem 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.875rem;
+        text-align: left;
+    }
+    .alloc-bar {
+        width: 4px;
+        height: 38px;
+        margin-bottom: 0;
+        border-radius: 2px;
+        flex-shrink: 0;
+    }
+    .alloc-label { margin-bottom: 0.15rem; font-size: 10px; }
+    .alloc-value { font-size: 1rem; }
+
+    /* Total display */
+    .total-display { padding: 1rem; }
+
+    /* Balance cards */
+    .balance-card { padding: 0.9rem; }
+    .balance-card-top { font-size: 0.825rem; }
+    .balance-row { font-size: 0.775rem; }
+    .balance-remaining { font-size: 0.825rem; }
+
+    /* Filter bar - full stack */
+    .filter-bar { flex-direction: column; }
+    .filter-bar .field { width: 100%; min-width: unset; }
+    .filter-bar .add-btn { width: 100% !important; margin-top: 0 !important; }
+
+    /* Report KPI - horizontal cards */
+    .report-kpi-grid { grid-template-columns: 1fr; gap: 0.6rem; }
+    .kpi-card {
+        padding: 0.875rem 1rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        text-align: left;
+    }
+    .kpi-card span { margin-bottom: 0; }
+    .kpi-card strong { font-size: 1.1rem; }
+
+    /* Report breakdown */
+    .report-breakdown-grid { grid-template-columns: 1fr; gap: 1rem; }
+}
