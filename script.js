@@ -1,479 +1,528 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // API URL - Uses relative path for Vercel Serverless
+
+    // ─── CONFIG ───────────────────────────────────────────────────
     const API_URL = '/api';
 
-    // --- DOM Elements ---
-    const loadingOverlay = document.getElementById('loading-overlay');
-    const langToggleBtn = document.getElementById('lang-toggle');
-    const currentLangText = document.getElementById('current-lang');
-    const themeToggleBtn = document.getElementById('theme-toggle');
-    const themeIcon = document.getElementById('theme-icon');
+    // ─── DOM REFS ─────────────────────────────────────────────────
+    const loadingOverlay  = document.getElementById('loading-overlay');
+    const loadingText     = document.getElementById('loading-text');
+    const langToggleBtn   = document.getElementById('lang-toggle');
+    const currentLangEl   = document.getElementById('current-lang');
+    const themeToggleBtn  = document.getElementById('theme-toggle');
+    const themeIcon       = document.getElementById('theme-icon');
 
-    // Income Elements
-    const incomeForm = document.getElementById('income-form');
-    const incomesList = document.getElementById('incomes-list');
-    const emptyIncomeState = document.getElementById('empty-income-state');
-    const totalIncomeAmountEl = document.getElementById('total-income-amount');
+    // Income
+    const incomeForm      = document.getElementById('income-form');
+    const incomesList     = document.getElementById('incomes-list');
+    const emptyIncome     = document.getElementById('empty-income');
+    const incomesTable    = document.getElementById('incomes-table');
+    const totalIncomeEl   = document.getElementById('total-income-amount');
     const savingsAmountEl = document.getElementById('savings-amount');
-    const needsAmountEl = document.getElementById('needs-amount');
-    const wantsAmountEl = document.getElementById('wants-amount');
+    const needsAmountEl   = document.getElementById('needs-amount');
+    const wantsAmountEl   = document.getElementById('wants-amount');
 
-    // Expense Elements
-    const expenseForm = document.getElementById('expense-form');
-    const expensesList = document.getElementById('expenses-list');
-    const emptyState = document.getElementById('empty-state');
-    
-    // Summary Elements
-    const summaryAllocatedNeeds = document.getElementById('summary-allocated-needs');
-    const summarySpentNeeds = document.getElementById('summary-spent-needs');
-    const summaryRemainingNeeds = document.getElementById('summary-remaining-needs');
-    const progressNeeds = document.getElementById('progress-needs');
-    const summaryAllocatedWants = document.getElementById('summary-allocated-wants');
-    const summarySpentWants = document.getElementById('summary-spent-wants');
-    const summaryRemainingWants = document.getElementById('summary-remaining-wants');
-    const progressWants = document.getElementById('progress-wants');
-    const totalSpentAmount = document.getElementById('total-spent-amount');
+    // Expense
+    const expenseForm     = document.getElementById('expense-form');
+    const expensesList    = document.getElementById('expenses-list');
+    const emptyExpense    = document.getElementById('empty-expense');
+    const expensesTable   = document.getElementById('expenses-table');
 
-    // State
+    // Summary
+    const sumAllocNeeds   = document.getElementById('summary-allocated-needs');
+    const sumSpentNeeds   = document.getElementById('summary-spent-needs');
+    const sumRemNeeds     = document.getElementById('summary-remaining-needs');
+    const progressNeeds   = document.getElementById('progress-needs');
+    const sumAllocWants   = document.getElementById('summary-allocated-wants');
+    const sumSpentWants   = document.getElementById('summary-spent-wants');
+    const sumRemWants     = document.getElementById('summary-remaining-wants');
+    const progressWants   = document.getElementById('progress-wants');
+    const totalSpentEl    = document.getElementById('total-spent-amount');
+
+    // ─── STATE ────────────────────────────────────────────────────
     let state = {
-        totalIncome: 0,
-        budget: { savings: 0, needs: 0, wants: 0 },
-        incomes: [],
+        incomes:  [],
         expenses: [],
-        lang: localStorage.getItem('financeLang') || 'en',
-        theme: localStorage.getItem('financeTheme') || 'dark'
+        budget:   { savings: 0, needs: 0, wants: 0 },
+        totalIncome: 0,
+        lang:  localStorage.getItem('ft_lang')  || 'en',
+        theme: localStorage.getItem('ft_theme') || 'dark',
     };
 
-    // --- Translations ---
+    // ─── TRANSLATIONS ─────────────────────────────────────────────
     const i18n = {
         en: {
-            app_title: "FinanceTracker",
-            syncing: "Syncing with Database...",
-            main_heading: "Smart Money Management",
-            sub_heading: "Manage your class fees easily",
-            tab_dashboard: "Dashboard",
-            tab_reports: "Monthly Reports",
-            daily_income: "Daily Income Tracker",
-            date: "Date",
-            class_desc: "Class / Description",
-            amount_received: "Amount Received",
-            add_income: "Add Income",
-            amount: "Amount",
-            action: "Action",
-            no_incomes: "No incomes logged yet.",
-            budget_allocation: "Budget Allocation",
-            total_monthly_income: "Total Monthly Income",
-            savings: "Savings (20%)",
-            needs: "Needs/Expenses (50%)",
-            wants: "Wants (30%)",
-            daily_expense: "Daily Expense Tracker",
-            description: "Description",
-            category: "Category",
-            select: "Select...",
-            need_option: "Need / Expense",
-            want_option: "Want",
-            add_expense: "Add Expense",
-            no_expenses: "No expenses logged yet.",
-            balance_summary: "Balance Summary",
-            needs_balance: "Needs Balance",
-            wants_balance: "Wants Balance",
-            allocated: "Allocated:",
-            spent: "Spent:",
-            remaining: "Remaining:",
-            total_monthly_spent: "Total Monthly Spent",
-            clear_all: "Clear All Cloud Data",
-            monthly_report_title: "Monthly Report Filter",
-            select_month: "Select Month",
-            generate_report: "Generate Report",
-            total_income: "Total Income",
-            total_expense: "Total Expense",
-            net_savings: "Net Savings",
-            income_breakdown: "Income Breakdown",
-            expense_breakdown: "Expense Breakdown",
-            need_badge: "Need",
-            want_badge: "Want",
-            deposit_calculator_title: "Bank Deposit Calculator",
-            deposit_calculator_desc: "Select a date range to calculate deposit percentages for accumulated class fees.",
-            start_date: "Start Date",
-            end_date: "End Date",
-            calculate: "Calculate",
-            selected_period_income: "Total Income in Selected Period",
-            deposit_split: "Deposit Split:"
+            app_title: 'FinanceTracker',
+            syncing: 'Syncing with Database...',
+            main_heading: 'Smart Money Management',
+            sub_heading: 'Manage your class fees easily',
+            tab_dashboard: 'Dashboard',
+            tab_reports: 'Reports',
+            daily_income: 'Daily Income Tracker',
+            date: 'Date',
+            class_desc: 'Class / Description',
+            amount_received: 'Amount Received (Rs.)',
+            add_income: 'Add Income',
+            amount: 'Amount',
+            action: 'Action',
+            no_incomes: 'No incomes logged yet.',
+            budget_allocation: 'Budget Allocation',
+            total_monthly_income: 'Total Monthly Income',
+            savings: 'Savings (20%)',
+            needs: 'Needs (50%)',
+            wants: 'Wants (30%)',
+            daily_expense: 'Daily Expense Tracker',
+            description: 'Description',
+            category: 'Category',
+            select: 'Select...',
+            need_option: 'Need / Expense',
+            want_option: 'Want',
+            add_expense: 'Add Expense',
+            no_expenses: 'No expenses logged yet.',
+            balance_summary: 'Balance Summary',
+            needs_balance: 'Needs Balance',
+            wants_balance: 'Wants Balance',
+            allocated: 'Allocated',
+            spent: 'Spent',
+            remaining: 'Remaining',
+            total_monthly_spent: 'Total Monthly Spent',
+            monthly_report_title: 'Monthly Report Filter',
+            select_month: 'Select Month',
+            generate_report: 'Generate Report',
+            total_income: 'Total Income',
+            total_expense: 'Total Expense',
+            net_savings: 'Net Savings',
+            income_breakdown: 'Income Breakdown',
+            expense_breakdown: 'Expense Breakdown',
+            need_badge: 'Need',
+            want_badge: 'Want',
+            deposit_calculator_title: 'Bank Deposit Calculator',
+            deposit_calculator_desc: 'Select a date range to calculate deposit percentages for accumulated class fees.',
+            start_date: 'Start Date',
+            end_date: 'End Date',
+            calculate: 'Calculate',
+            selected_period_income: 'Total Income in Selected Period',
+            deposit_split: 'Deposit Split:',
         },
         si: {
-            app_title: "මූල්‍ය කළමනාකරු",
-            syncing: "දත්ත සමග සම්බන්ධ වෙමින්...",
-            main_heading: "ස්මාර්ට් මූල්‍ය කළමනාකරණය",
-            sub_heading: "ඔබගේ පන්ති ගාස්තු පහසුවෙන් කළමනාකරණය කරන්න",
-            tab_dashboard: "ප්‍රධාන පුවරුව",
-            tab_reports: "මාසික වාර්තා",
-            daily_income: "දෛනික ආදායම් සටහන",
-            date: "දිනය",
-            class_desc: "පන්තිය / විස්තරය",
-            amount_received: "ලැබුණු මුදල",
-            add_income: "ආදායම එකතු කරන්න",
-            amount: "මුදල",
-            action: "ක්‍රියාව",
-            no_incomes: "තවම ආදායම් සටහන් කර නැත.",
-            budget_allocation: "අයවැය බෙදීම",
-            total_monthly_income: "මුළු මාසික ආදායම",
-            savings: "ඉතිරිය (20%)",
-            needs: "අවශ්‍යතා/වියදම් (50%)",
-            wants: "වුවමනා (30%)",
-            daily_expense: "දෛනික වියදම් සටහන",
-            description: "විස්තරය",
-            category: "කාණ්ඩය",
-            select: "තෝරන්න...",
-            need_option: "අවශ්‍යතා / වියදම්",
-            want_option: "වුවමනා",
-            add_expense: "වියදම එකතු කරන්න",
-            no_expenses: "තවම වියදම් සටහන් කර නැත.",
-            balance_summary: "ශේෂ සාරාංශය",
-            needs_balance: "අවශ්‍යතා ශේෂය",
-            wants_balance: "වුවමනා ශේෂය",
-            allocated: "වෙන් කල:",
-            spent: "වියදම් කල:",
-            remaining: "ඉතිරිය:",
-            total_monthly_spent: "මුළු මාසික වියදම",
-            clear_all: "සියලු දත්ත මකන්න",
-            monthly_report_title: "මාසික වාර්තා සෙවීම",
-            select_month: "මාසය තෝරන්න",
-            generate_report: "වාර්තාව බලන්න",
-            total_income: "මුළු ආදායම",
-            total_expense: "මුළු වියදම",
-            net_savings: "ඉතිරි මුදල",
-            income_breakdown: "ආදායම් විස්තරය",
-            expense_breakdown: "වියදම් විස්තරය",
-            need_badge: "අවශ්‍යතා",
-            want_badge: "වුවමනා",
-            deposit_calculator_title: "බැංකු තැන්පතු ගණනය",
-            deposit_calculator_desc: "දින කිහිපයක එකතු වූ පන්ති ගාස්තු බැංකුවට දැමීමට පෙර ප්‍රතිශත වෙන්කර ගැනීමට දින පරාසයක් තෝරන්න.",
-            start_date: "ආරම්භක දිනය",
-            end_date: "අවසන් දිනය",
-            calculate: "ගණනය කරන්න",
-            selected_period_income: "තෝරාගත් කාලයේ මුළු ආදායම",
-            deposit_split: "බැංකුවට දැමිය යුතු අයුරු:"
+            app_title: 'මූල්‍ය කළමනාකරු',
+            syncing: 'දත්ත සමග සම්බන්ධ වෙමින්...',
+            main_heading: 'ස්මාර්ට් මූල්‍ය කළමනාකරණය',
+            sub_heading: 'ඔබගේ පන්ති ගාස්තු පහසුවෙන් කළමනාකරණය කරන්න',
+            tab_dashboard: 'ප්‍රධාන පුවරුව',
+            tab_reports: 'මාසික වාර්තා',
+            daily_income: 'දෛනික ආදායම් සටහන',
+            date: 'දිනය',
+            class_desc: 'පන්තිය / විස්තරය',
+            amount_received: 'ලැබුණු මුදල (රු.)',
+            add_income: 'ආදායම එකතු කරන්න',
+            amount: 'මුදල',
+            action: 'ක්‍රියාව',
+            no_incomes: 'තවම ආදායම් සටහන් කර නැත.',
+            budget_allocation: 'අයවැය බෙදීම',
+            total_monthly_income: 'මුළු මාසික ආදායම',
+            savings: 'ඉතිරිය (20%)',
+            needs: 'අවශ්‍යතා (50%)',
+            wants: 'වුවමනා (30%)',
+            daily_expense: 'දෛනික වියදම් සටහන',
+            description: 'විස්තරය',
+            category: 'කාණ්ඩය',
+            select: 'තෝරන්න...',
+            need_option: 'අවශ්‍යතා / වියදම්',
+            want_option: 'වුවමනා',
+            add_expense: 'වියදම එකතු කරන්න',
+            no_expenses: 'තවම වියදම් සටහන් කර නැත.',
+            balance_summary: 'ශේෂ සාරාංශය',
+            needs_balance: 'අවශ්‍යතා ශේෂය',
+            wants_balance: 'වුවමනා ශේෂය',
+            allocated: 'වෙන් කල',
+            spent: 'වියදම් කල',
+            remaining: 'ඉතිරිය',
+            total_monthly_spent: 'මුළු මාසික වියදම',
+            monthly_report_title: 'මාසික වාර්තා සෙවීම',
+            select_month: 'මාසය තෝරන්න',
+            generate_report: 'වාර්තාව බලන්න',
+            total_income: 'මුළු ආදායම',
+            total_expense: 'මුළු වියදම',
+            net_savings: 'ඉතිරි මුදල',
+            income_breakdown: 'ආදායම් විස්තරය',
+            expense_breakdown: 'වියදම් විස්තරය',
+            need_badge: 'අවශ්‍යතා',
+            want_badge: 'වුවමනා',
+            deposit_calculator_title: 'බැංකු තැන්පතු ගණනය',
+            deposit_calculator_desc: 'දින කිහිපයක එකතු වූ පන්ති ගාස්තු බැංකුවට දැමීමට ප්‍රතිශත ගණනය කරන්න.',
+            start_date: 'ආරම්භක දිනය',
+            end_date: 'අවසන් දිනය',
+            calculate: 'ගණනය කරන්න',
+            selected_period_income: 'තෝරාගත් කාලයේ මුළු ආදායම',
+            deposit_split: 'බැංකුවට දැමිය යුතු අයුරු:',
         }
     };
 
-    // --- Formatters ---
-    const currencyFormatter = new Intl.NumberFormat('en-LK', {
-        style: 'currency',
-        currency: 'LKR',
-        minimumFractionDigits: 2
-    });
+    // ─── FORMATTERS ───────────────────────────────────────────────
+    const fmt = (v) =>
+        'Rs.\u00a0' + Number(v).toLocaleString('en-LK', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
 
-    const showLoading = () => loadingOverlay.style.display = 'flex';
-    const hideLoading = () => loadingOverlay.style.display = 'none';
+    const fmtDate = (dateStr) => {
+        const d = new Date(dateStr);
+        return d.toLocaleDateString(state.lang === 'si' ? 'si-LK' : 'en-GB', {
+            day: '2-digit', month: 'short', year: '2-digit'
+        });
+    };
 
-    // --- Tab Switching ---
-    window.switchTab = (tabId) => {
-        document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-        document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+    // ─── LOADING ──────────────────────────────────────────────────
+    const showLoading = (msg) => {
+        if (msg && loadingText) loadingText.textContent = msg;
+        loadingOverlay.style.display = 'flex';
+    };
+    const hideLoading = () => { loadingOverlay.style.display = 'none'; };
+
+    // ─── TAB SWITCHING ────────────────────────────────────────────
+    window.switchTab = (tabId, btn) => {
+        document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('.nav-tab').forEach(b => b.classList.remove('active'));
         document.getElementById(`tab-${tabId}`).classList.add('active');
-        event.currentTarget.classList.add('active');
+        btn.classList.add('active');
+
         if (tabId === 'reports') {
-            document.getElementById('report-month').value = new Date().toISOString().slice(0, 7);
+            const m = document.getElementById('report-month');
+            if (!m.value) m.value = new Date().toISOString().slice(0, 7);
         }
     };
 
-    // --- Language Logic ---
+    // ─── LANGUAGE ─────────────────────────────────────────────────
     const applyLanguage = () => {
         const dict = i18n[state.lang];
         document.querySelectorAll('[data-i18n]').forEach(el => {
             const key = el.getAttribute('data-i18n');
-            if (dict[key]) el.textContent = dict[key];
+            if (dict[key] !== undefined) el.textContent = dict[key];
         });
-        currentLangText.textContent = state.lang === 'en' ? 'සිං' : 'EN';
+        currentLangEl.textContent = state.lang === 'en' ? 'සිං' : 'EN';
         document.body.className = state.lang === 'si' ? 'lang-si' : '';
-        updateUI(); // Re-render tables with new language badges
+        renderAll();
     };
 
     langToggleBtn.addEventListener('click', () => {
         state.lang = state.lang === 'en' ? 'si' : 'en';
-        localStorage.setItem('financeLang', state.lang);
+        localStorage.setItem('ft_lang', state.lang);
         applyLanguage();
     });
 
-    // --- Theme Logic ---
+    // ─── THEME ────────────────────────────────────────────────────
     const applyTheme = () => {
         document.documentElement.setAttribute('data-theme', state.theme);
-        themeIcon.className = state.theme === 'dark' ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
+        themeIcon.className = state.theme === 'dark'
+            ? 'fa-solid fa-sun'
+            : 'fa-solid fa-moon';
     };
 
     themeToggleBtn.addEventListener('click', () => {
         state.theme = state.theme === 'dark' ? 'light' : 'dark';
-        localStorage.setItem('financeTheme', state.theme);
+        localStorage.setItem('ft_theme', state.theme);
         applyTheme();
     });
 
-    // --- Fetch Data ---
+    // ─── CALCULATIONS ─────────────────────────────────────────────
+    const calcTotals = () => {
+        state.totalIncome = state.incomes.reduce((a, c) => a + c.amount, 0);
+        state.budget = {
+            savings: state.totalIncome * 0.20,
+            needs:   state.totalIncome * 0.50,
+            wants:   state.totalIncome * 0.30,
+        };
+    };
+
+    // ─── FETCH DATA ───────────────────────────────────────────────
     const fetchData = async () => {
-        showLoading();
+        showLoading(i18n[state.lang].syncing);
         try {
-            const [incomesRes, expensesRes] = await Promise.all([
+            const [incRes, expRes] = await Promise.all([
                 fetch(`${API_URL}/incomes`),
                 fetch(`${API_URL}/expenses`)
             ]);
-            
-            if(!incomesRes.ok || !expensesRes.ok) throw new Error('Failed to fetch data');
-
-            state.incomes = await incomesRes.json();
-            state.expenses = await expensesRes.json();
-            
-            calculateTotals();
-            updateUI();
-        } catch (error) {
-            console.error('Error fetching data:', error);
-            alert('Cannot connect to Database. Check internet connection or MongoDB IP whitelist.');
+            if (!incRes.ok || !expRes.ok) throw new Error('Fetch failed');
+            state.incomes  = await incRes.json();
+            state.expenses = await expRes.json();
+            calcTotals();
+            renderAll();
+        } catch (err) {
+            console.error('DB error:', err);
+            alert('Cannot connect to database. Check your connection or MongoDB IP whitelist.');
         } finally {
             hideLoading();
         }
     };
 
-    const calculateTotals = () => {
-        state.totalIncome = state.incomes.reduce((acc, curr) => acc + curr.amount, 0);
-        state.budget = {
-            savings: state.totalIncome * 0.20,
-            needs: state.totalIncome * 0.50,
-            wants: state.totalIncome * 0.30
-        };
-    };
-
-    // --- Form Handlers ---
-    document.getElementById('income-form').addEventListener('submit', async (e) => {
+    // ─── INCOME FORM ──────────────────────────────────────────────
+    incomeForm.addEventListener('submit', async (e) => {
         e.preventDefault();
-        const date = document.getElementById('income-date').value;
-        const description = document.getElementById('income-desc').value;
-        const amount = parseFloat(document.getElementById('income-amount').value);
-        if (!date || !description || isNaN(amount)) return;
+        const date        = document.getElementById('income-date').value;
+        const description = document.getElementById('income-desc').value.trim();
+        const amount      = parseFloat(document.getElementById('income-amount').value);
+        if (!date || !description || isNaN(amount) || amount <= 0) return;
 
         showLoading();
         try {
             const res = await fetch(`${API_URL}/incomes`, {
-                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ date, description, amount })
             });
-            const newIncome = await res.json();
-            state.incomes.unshift(newIncome);
-            calculateTotals(); updateUI();
-            document.getElementById('income-desc').value = '';
+            const newItem = await res.json();
+            state.incomes.unshift(newItem);
+            calcTotals();
+            renderAll();
+            document.getElementById('income-desc').value   = '';
             document.getElementById('income-amount').value = '';
-        } catch (err) { console.error(err); } finally { hideLoading(); }
+        } catch (err) { console.error(err); }
+        finally { hideLoading(); }
     });
 
-    document.getElementById('expense-form').addEventListener('submit', async (e) => {
+    // ─── EXPENSE FORM ─────────────────────────────────────────────
+    expenseForm.addEventListener('submit', async (e) => {
         e.preventDefault();
-        const date = document.getElementById('expense-date').value;
-        const description = document.getElementById('expense-desc').value;
-        const category = document.getElementById('expense-category').value;
-        const amount = parseFloat(document.getElementById('expense-amount').value);
-        if (!date || !description || !category || isNaN(amount)) return;
+        const date        = document.getElementById('expense-date').value;
+        const description = document.getElementById('expense-desc').value.trim();
+        const category    = document.getElementById('expense-category').value;
+        const amount      = parseFloat(document.getElementById('expense-amount').value);
+        if (!date || !description || !category || isNaN(amount) || amount <= 0) return;
 
         showLoading();
         try {
             const res = await fetch(`${API_URL}/expenses`, {
-                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ date, description, category, amount })
             });
-            const newExpense = await res.json();
-            state.expenses.unshift(newExpense);
-            updateUI();
-            document.getElementById('expense-desc').value = '';
-            document.getElementById('expense-amount').value = '';
-        } catch (err) { console.error(err); } finally { hideLoading(); }
+            const newItem = await res.json();
+            state.expenses.unshift(newItem);
+            renderAll();
+            document.getElementById('expense-desc').value     = '';
+            document.getElementById('expense-amount').value   = '';
+            document.getElementById('expense-category').value = '';
+        } catch (err) { console.error(err); }
+        finally { hideLoading(); }
     });
 
+    // ─── DELETE ───────────────────────────────────────────────────
     window.deleteIncome = async (id) => {
         showLoading();
         try {
             await fetch(`${API_URL}/incomes/${id}`, { method: 'DELETE' });
-            state.incomes = state.incomes.filter(inc => inc._id !== id);
-            calculateTotals(); updateUI();
-        } catch (err) { console.error(err); } finally { hideLoading(); }
+            state.incomes = state.incomes.filter(i => i._id !== id);
+            calcTotals();
+            renderAll();
+        } catch (err) { console.error(err); }
+        finally { hideLoading(); }
     };
 
     window.deleteExpense = async (id) => {
         showLoading();
         try {
             await fetch(`${API_URL}/expenses/${id}`, { method: 'DELETE' });
-            state.expenses = state.expenses.filter(exp => exp._id !== id);
-            updateUI();
-        } catch (err) { console.error(err); } finally { hideLoading(); }
+            state.expenses = state.expenses.filter(e => e._id !== id);
+            renderAll();
+        } catch (err) { console.error(err); }
+        finally { hideLoading(); }
     };
 
-
-
-    // --- UI Update ---
-    const updateUI = () => {
+    // ─── RENDER ALL ───────────────────────────────────────────────
+    const renderAll = () => {
         const dict = i18n[state.lang];
-        
-        totalIncomeAmountEl.textContent = currencyFormatter.format(state.totalIncome);
-        savingsAmountEl.textContent = currencyFormatter.format(state.budget.savings);
-        needsAmountEl.textContent = currencyFormatter.format(state.budget.needs);
-        wantsAmountEl.textContent = currencyFormatter.format(state.budget.wants);
 
-        // Incomes
+        // Budget allocation display
+        totalIncomeEl.textContent   = fmt(state.totalIncome);
+        savingsAmountEl.textContent = fmt(state.budget.savings);
+        needsAmountEl.textContent   = fmt(state.budget.needs);
+        wantsAmountEl.textContent   = fmt(state.budget.wants);
+
+        // ── Incomes table ──
         incomesList.innerHTML = '';
         if (state.incomes.length === 0) {
-            emptyIncomeState.style.display = 'block';
-            document.getElementById('incomes-table').style.display = 'none';
+            emptyIncome.style.display  = 'block';
+            incomesTable.style.display = 'none';
         } else {
-            emptyIncomeState.style.display = 'none';
-            document.getElementById('incomes-table').style.display = 'table';
-            state.incomes.forEach((inc, index) => {
+            emptyIncome.style.display  = 'none';
+            incomesTable.style.display = 'table';
+            state.incomes.forEach(inc => {
                 const tr = document.createElement('tr');
-                const dateObj = new Date(inc.date);
                 tr.innerHTML = `
-                    <td>${dateObj.toLocaleDateString()}</td>
+                    <td>${fmtDate(inc.date)}</td>
                     <td>${inc.description}</td>
-                    <td style="font-weight: 600; color: var(--color-savings)">+${currencyFormatter.format(inc.amount)}</td>
-                    <td><button class="delete-btn" onclick="deleteIncome('${inc._id}')"><i class="fa-solid fa-trash"></i></button></td>
-                `;
+                    <td style="font-weight:700;color:var(--cyan);font-family:var(--mono)">
+                        +${fmt(inc.amount)}
+                    </td>
+                    <td>
+                        <button class="del-btn" onclick="deleteIncome('${inc._id}')" title="Delete">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                    </td>`;
                 incomesList.appendChild(tr);
             });
         }
 
-        // Expenses
+        // ── Expenses table ──
         expensesList.innerHTML = '';
         if (state.expenses.length === 0) {
-            emptyState.style.display = 'block';
-            document.getElementById('expenses-table').style.display = 'none';
+            emptyExpense.style.display  = 'block';
+            expensesTable.style.display = 'none';
         } else {
-            emptyState.style.display = 'none';
-            document.getElementById('expenses-table').style.display = 'table';
-            state.expenses.forEach((expense, index) => {
-                const tr = document.createElement('tr');
-                const badgeClass = expense.category === 'need' ? 'badge-need' : 'badge-want';
-                const categoryText = expense.category === 'need' ? dict.need_badge : dict.want_badge;
-                const dateObj = new Date(expense.date);
+            emptyExpense.style.display  = 'none';
+            expensesTable.style.display = 'table';
+            state.expenses.forEach(exp => {
+                const isNeed    = exp.category === 'need';
+                const badgeCls  = isNeed ? 'badge-need' : 'badge-want';
+                const badgeTxt  = isNeed ? dict.need_badge : dict.want_badge;
+                const tr        = document.createElement('tr');
                 tr.innerHTML = `
-                    <td>${dateObj.toLocaleDateString()}</td>
-                    <td>${expense.description}</td>
-                    <td><span class="badge ${badgeClass}">${categoryText}</span></td>
-                    <td style="font-weight: 600;">${currencyFormatter.format(expense.amount)}</td>
-                    <td><button class="delete-btn" onclick="deleteExpense('${expense._id}')"><i class="fa-solid fa-trash"></i></button></td>
-                `;
+                    <td>${fmtDate(exp.date)}</td>
+                    <td>${exp.description}</td>
+                    <td><span class="badge ${badgeCls}">${badgeTxt}</span></td>
+                    <td style="font-weight:600;font-family:var(--mono)">${fmt(exp.amount)}</td>
+                    <td>
+                        <button class="del-btn" onclick="deleteExpense('${exp._id}')" title="Delete">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                    </td>`;
                 expensesList.appendChild(tr);
             });
         }
-        updateSummary();
+
+        renderSummary();
     };
 
-    const updateSummary = () => {
-        let spentNeeds = 0; let spentWants = 0;
-        state.expenses.forEach(exp => {
-            if (exp.category === 'need') spentNeeds += exp.amount;
-            if (exp.category === 'want') spentWants += exp.amount;
+    // ─── RENDER SUMMARY ───────────────────────────────────────────
+    const renderSummary = () => {
+        let spentNeeds = 0, spentWants = 0;
+        state.expenses.forEach(e => {
+            if (e.category === 'need') spentNeeds += e.amount;
+            else                       spentWants += e.amount;
         });
 
-        const totalSpent = spentNeeds + spentWants;
-        const remainingNeeds = state.budget.needs - spentNeeds;
-        const remainingWants = state.budget.wants - spentWants;
+        const remNeeds = state.budget.needs - spentNeeds;
+        const remWants = state.budget.wants - spentWants;
 
-        summaryAllocatedNeeds.textContent = currencyFormatter.format(state.budget.needs);
-        summarySpentNeeds.textContent = currencyFormatter.format(spentNeeds);
-        summaryRemainingNeeds.textContent = currencyFormatter.format(remainingNeeds);
-        summaryAllocatedWants.textContent = currencyFormatter.format(state.budget.wants);
-        summarySpentWants.textContent = currencyFormatter.format(spentWants);
-        summaryRemainingWants.textContent = currencyFormatter.format(remainingWants);
-        totalSpentAmount.textContent = currencyFormatter.format(totalSpent);
+        sumAllocNeeds.textContent = fmt(state.budget.needs);
+        sumSpentNeeds.textContent = fmt(spentNeeds);
+        sumRemNeeds.textContent   = fmt(remNeeds);
+        sumRemNeeds.style.color   = remNeeds < 0 ? 'var(--rose)' : '';
 
-        summaryRemainingNeeds.style.color = remainingNeeds < 0 ? 'var(--danger)' : 'var(--text-primary)';
-        summaryRemainingWants.style.color = remainingWants < 0 ? 'var(--danger)' : 'var(--text-primary)';
+        sumAllocWants.textContent = fmt(state.budget.wants);
+        sumSpentWants.textContent = fmt(spentWants);
+        sumRemWants.textContent   = fmt(remWants);
+        sumRemWants.style.color   = remWants < 0 ? 'var(--rose)' : '';
 
-        const calcPct = (spent, alloc) => alloc === 0 ? (spent > 0 ? 100 : 0) : Math.min((spent / alloc) * 100, 100);
-        
-        const needsPct = calcPct(spentNeeds, state.budget.needs);
-        progressNeeds.style.width = `${needsPct}%`;
-        progressNeeds.style.backgroundColor = needsPct >= 100 ? 'var(--danger)' : 'var(--color-needs)';
-        
-        const wantsPct = calcPct(spentWants, state.budget.wants);
-        progressWants.style.width = `${wantsPct}%`;
-        progressWants.style.backgroundColor = wantsPct >= 100 ? 'var(--danger)' : 'var(--color-wants)';
+        totalSpentEl.textContent = fmt(spentNeeds + spentWants);
+
+        const pct = (spent, alloc) =>
+            alloc === 0 ? (spent > 0 ? 100 : 0) : Math.min((spent / alloc) * 100, 100);
+
+        const np = pct(spentNeeds, state.budget.needs);
+        progressNeeds.style.width      = `${np}%`;
+        progressNeeds.style.background = np >= 100 ? 'var(--rose)' : 'var(--amber)';
+
+        const wp = pct(spentWants, state.budget.wants);
+        progressWants.style.width      = `${wp}%`;
+        progressWants.style.background = wp >= 100 ? 'var(--rose)' : 'var(--indigo-light)';
     };
 
-    // --- Report Logic ---
+    // ─── MONTHLY REPORT ───────────────────────────────────────────
     document.getElementById('generate-report-btn').addEventListener('click', () => {
-        const monthVal = document.getElementById('report-month').value; // YYYY-MM
-        if(!monthVal) return;
-        
+        const monthVal = document.getElementById('report-month').value;
+        if (!monthVal) return;
+
         const [year, month] = monthVal.split('-');
-        const dateObj = new Date(year, month - 1);
-        const monthName = dateObj.toLocaleString(state.lang === 'si' ? 'si-LK' : 'en-US', { month: 'long', year: 'numeric' });
+        const monthName = new Date(year, month - 1).toLocaleString(
+            state.lang === 'si' ? 'si-LK' : 'en-US',
+            { month: 'long', year: 'numeric' }
+        );
         document.getElementById('report-display-month').textContent = monthName;
 
-        // Filter data
-        const filteredIncomes = state.incomes.filter(i => i.date.startsWith(monthVal));
-        const filteredExpenses = state.expenses.filter(e => e.date.startsWith(monthVal));
+        const filtInc = state.incomes.filter(i  => i.date.startsWith(monthVal));
+        const filtExp = state.expenses.filter(e => e.date.startsWith(monthVal));
 
-        const totalInc = filteredIncomes.reduce((a, c) => a + c.amount, 0);
-        const totalExp = filteredExpenses.reduce((a, c) => a + c.amount, 0);
-        const savings = totalInc - totalExp;
+        const totalInc = filtInc.reduce((a, c) => a + c.amount, 0);
+        const totalExp = filtExp.reduce((a, c) => a + c.amount, 0);
+        const savings  = totalInc - totalExp;
 
-        document.getElementById('rep-income').textContent = currencyFormatter.format(totalInc);
-        document.getElementById('rep-expense').textContent = currencyFormatter.format(totalExp);
-        document.getElementById('rep-savings').textContent = currencyFormatter.format(savings);
-        
-        const repSavingsEl = document.getElementById('rep-savings').parentElement;
-        repSavingsEl.className = 'report-card ' + (savings >= 0 ? 'success' : 'danger');
+        document.getElementById('rep-income').textContent  = fmt(totalInc);
+        document.getElementById('rep-expense').textContent = fmt(totalExp);
+        document.getElementById('rep-savings').textContent = fmt(savings);
 
-        const incList = document.getElementById('rep-income-list');
-        incList.innerHTML = '';
-        filteredIncomes.forEach(inc => {
-            incList.innerHTML += `<tr><td>${new Date(inc.date).toLocaleDateString()}</td><td>${inc.description}</td><td>${currencyFormatter.format(inc.amount)}</td></tr>`;
-        });
+        // Savings card colour
+        const savCard = document.getElementById('savings-kpi');
+        savCard.className = 'kpi-card ' + (savings >= 0 ? 'kpi-card--green' : 'kpi-card--danger');
 
-        const expList = document.getElementById('rep-expense-list');
-        expList.innerHTML = '';
-        filteredExpenses.forEach(exp => {
-            expList.innerHTML += `<tr><td>${new Date(exp.date).toLocaleDateString()}</td><td>${exp.description}</td><td>${currencyFormatter.format(exp.amount)}</td></tr>`;
-        });
+        // Income breakdown
+        const incBody = document.getElementById('rep-income-list');
+        incBody.innerHTML = filtInc.length
+            ? filtInc.map(i => `
+                <tr>
+                    <td>${fmtDate(i.date)}</td>
+                    <td>${i.description}</td>
+                    <td style="color:var(--cyan);font-family:var(--mono);font-weight:600">${fmt(i.amount)}</td>
+                </tr>`).join('')
+            : '<tr><td colspan="3" style="text-align:center;color:var(--text-subtle);padding:1.5rem">No data</td></tr>';
+
+        // Expense breakdown
+        const expBody = document.getElementById('rep-expense-list');
+        expBody.innerHTML = filtExp.length
+            ? filtExp.map(e => `
+                <tr>
+                    <td>${fmtDate(e.date)}</td>
+                    <td>${e.description}</td>
+                    <td style="font-family:var(--mono);font-weight:600">${fmt(e.amount)}</td>
+                </tr>`).join('')
+            : '<tr><td colspan="3" style="text-align:center;color:var(--text-subtle);padding:1.5rem">No data</td></tr>';
 
         document.getElementById('report-results').style.display = 'block';
     });
 
-    // --- Bank Deposit Calculator Logic ---
+    // ─── BANK DEPOSIT CALCULATOR ──────────────────────────────────
     document.getElementById('calculate-deposit-btn').addEventListener('click', () => {
         const startVal = document.getElementById('calc-start-date').value;
-        const endVal = document.getElementById('calc-end-date').value;
-        
+        const endVal   = document.getElementById('calc-end-date').value;
+
         if (!startVal || !endVal) {
-            alert(state.lang === 'si' ? 'කරුණාකර දින දෙකම තෝරන්න.' : 'Please select both start and end dates.');
+            alert(state.lang === 'si'
+                ? 'කරුණාකර දින දෙකම තෝරන්න.'
+                : 'Please select both start and end dates.');
             return;
         }
 
-        const startDate = new Date(startVal);
-        startDate.setHours(0,0,0,0);
-        
-        const endDate = new Date(endVal);
-        endDate.setHours(23,59,59,999);
+        const startDate = new Date(startVal); startDate.setHours(0, 0, 0, 0);
+        const endDate   = new Date(endVal);   endDate.setHours(23, 59, 59, 999);
 
         if (startDate > endDate) {
-            alert(state.lang === 'si' ? 'ආරම්භක දිනය අවසන් දිනයට පෙර විය යුතුය.' : 'Start date must be before end date.');
+            alert(state.lang === 'si'
+                ? 'ආරම්භක දිනය අවසන් දිනයට පෙර විය යුතුය.'
+                : 'Start date must be before end date.');
             return;
         }
 
-        // Filter incomes within the range
         const periodIncomes = state.incomes.filter(inc => {
-            const incDate = new Date(inc.date);
-            return incDate >= startDate && incDate <= endDate;
+            const d = new Date(inc.date);
+            return d >= startDate && d <= endDate;
         });
+        const total = periodIncomes.reduce((a, c) => a + c.amount, 0);
 
-        const periodTotal = periodIncomes.reduce((a, c) => a + c.amount, 0);
-
-        document.getElementById('calc-total-income').textContent = currencyFormatter.format(periodTotal);
-        document.getElementById('calc-savings').textContent = currencyFormatter.format(periodTotal * 0.20);
-        document.getElementById('calc-needs').textContent = currencyFormatter.format(periodTotal * 0.50);
-        document.getElementById('calc-wants').textContent = currencyFormatter.format(periodTotal * 0.30);
+        document.getElementById('calc-total-income').textContent = fmt(total);
+        document.getElementById('calc-savings').textContent      = fmt(total * 0.20);
+        document.getElementById('calc-needs').textContent        = fmt(total * 0.50);
+        document.getElementById('calc-wants').textContent        = fmt(total * 0.30);
 
         document.getElementById('deposit-results').style.display = 'block';
     });
 
-    // --- Initialization ---
-    applyLanguage();
+    // ─── INIT ─────────────────────────────────────────────────────
     applyTheme();
-    document.getElementById('income-date').valueAsDate = new Date();
-    document.getElementById('expense-date').valueAsDate = new Date();
+    applyLanguage();
+
+    const today = new Date().toISOString().slice(0, 10);
+    document.getElementById('income-date').value  = today;
+    document.getElementById('expense-date').value = today;
+
     fetchData();
 });
