@@ -11,6 +11,24 @@ document.addEventListener('DOMContentLoaded', () => {
     const themeToggleBtn  = document.getElementById('theme-toggle');
     const themeIcon       = document.getElementById('theme-icon');
 
+    // Auth Elements
+    const authPortal      = document.getElementById('auth-portal');
+    const mainApp         = document.getElementById('main-app');
+    const tabLoginBtn     = document.getElementById('tab-login-btn');
+    const tabRegisterBtn  = document.getElementById('tab-register-btn');
+    const loginForm       = document.getElementById('login-form');
+    const registerForm    = document.getElementById('register-form');
+    const guestLoginBtn   = document.getElementById('guest-login-btn');
+
+    // Profile Elements
+    const profileMenu     = document.getElementById('profile-menu');
+    const profileTrigger  = document.getElementById('profile-trigger');
+    const profileName     = document.getElementById('profile-name');
+    const profileEmail    = document.getElementById('profile-email');
+    const userAvatar      = document.getElementById('user-avatar');
+    const userIcon        = document.getElementById('user-icon');
+    const logoutBtn       = document.getElementById('logout-btn');
+
     // Income
     const incomeForm      = document.getElementById('income-form');
     const incomesList     = document.getElementById('incomes-list');
@@ -46,7 +64,14 @@ document.addEventListener('DOMContentLoaded', () => {
         totalIncome: 0,
         lang:  localStorage.getItem('ft_lang')  || 'en',
         theme: localStorage.getItem('ft_theme') || 'dark',
+        token: localStorage.getItem('ft_token') || '',
+        user:  JSON.parse(localStorage.getItem('ft_user')) || null,
+        isGuest: localStorage.getItem('ft_is_guest') === 'true'
     };
+
+    // ─── CHART INSTANCES ──────────────────────────────────────────
+    let categoryChart = null;
+    let trendChart = null;
 
     // ─── TRANSLATIONS ─────────────────────────────────────────────
     const i18n = {
@@ -102,6 +127,20 @@ document.addEventListener('DOMContentLoaded', () => {
             calculate: 'Calculate',
             selected_period_income: 'Total Income in Selected Period',
             deposit_split: 'Deposit Split:',
+            
+            // Auth translations
+            auth_subtitle: 'Smart Money Management',
+            login: 'Login',
+            register: 'Register',
+            email_address: 'Email Address',
+            password: 'Password',
+            signin: 'Sign In',
+            full_name: 'Full Name',
+            create_account: 'Create Account',
+            guest_mode: 'Continue as Guest (Demo)',
+            signout: 'Sign Out',
+            visual_analytics: 'Visual Analytics',
+            reports_desc: 'Track, analyse and plan your finances',
         },
         si: {
             app_title: 'මූල්‍ය කළමනාකරු',
@@ -155,7 +194,30 @@ document.addEventListener('DOMContentLoaded', () => {
             calculate: 'ගණනය කරන්න',
             selected_period_income: 'තෝරාගත් කාලයේ මුළු ආදායම',
             deposit_split: 'බැංකුවට දැමිය යුතු අයුරු:',
+
+            // Auth translations
+            auth_subtitle: 'ස්මාර්ට් මූල්‍ය කළමනාකරණය',
+            login: 'ඇතුල් වන්න',
+            register: 'ලියාපදිංචි වන්න',
+            email_address: 'ඊමේල් ලිපිනය',
+            password: 'මුරපදය',
+            signin: 'ඇතුල් වන්න',
+            full_name: 'සම්පූර්ණ නම',
+            create_account: 'ගිණුමක් සාදන්න',
+            guest_mode: 'ආගන්තුකයෙකු ලෙස ඇතුල් වන්න (Demo)',
+            signout: 'පිටවන්න',
+            visual_analytics: 'ප්‍රස්ථාරික විශ්ලේෂණය',
+            reports_desc: 'ඔබගේ මූල්‍ය කටයුතු නිරීක්ෂණය කර සැලසුම් කරන්න',
         }
+    };
+
+    // ─── HEADERS GENERATOR ────────────────────────────────────────
+    const getHeaders = () => {
+        const headers = { 'Content-Type': 'application/json' };
+        if (state.token) {
+            headers['Authorization'] = `Bearer ${state.token}`;
+        }
+        return headers;
     };
 
     // ─── FORMATTERS ───────────────────────────────────────────────
@@ -208,6 +270,10 @@ document.addEventListener('DOMContentLoaded', () => {
         state.lang = state.lang === 'en' ? 'si' : 'en';
         localStorage.setItem('ft_lang', state.lang);
         applyLanguage();
+        if (categoryChart && trendChart) {
+            initCharts();
+            updateCharts();
+        }
     });
 
     // ─── THEME ────────────────────────────────────────────────────
@@ -216,6 +282,10 @@ document.addEventListener('DOMContentLoaded', () => {
         themeIcon.className = state.theme === 'dark'
             ? 'fa-solid fa-sun'
             : 'fa-solid fa-moon';
+        if (categoryChart && trendChart) {
+            initCharts();
+            updateCharts();
+        }
     };
 
     themeToggleBtn.addEventListener('click', () => {
@@ -234,13 +304,26 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     };
 
+    // ─── MOCK GUEST DATABASE ──────────────────────────────────────
+    const saveGuestData = () => {
+        localStorage.setItem('ft_guest_incomes', JSON.stringify(state.incomes));
+        localStorage.setItem('ft_guest_expenses', JSON.stringify(state.expenses));
+    };
+
+    const loadGuestData = () => {
+        state.incomes = JSON.parse(localStorage.getItem('ft_guest_incomes')) || [];
+        state.expenses = JSON.parse(localStorage.getItem('ft_guest_expenses')) || [];
+        calcTotals();
+        renderAll();
+    };
+
     // ─── FETCH DATA ───────────────────────────────────────────────
     const fetchData = async () => {
         showLoading(i18n[state.lang].syncing);
         try {
             const [incRes, expRes] = await Promise.all([
-                fetch(`${API_URL}/incomes`),
-                fetch(`${API_URL}/expenses`)
+                fetch(`${API_URL}/incomes`, { headers: getHeaders() }),
+                fetch(`${API_URL}/expenses`, { headers: getHeaders() })
             ]);
             if (!incRes.ok || !expRes.ok) throw new Error('Fetch failed');
             state.incomes  = await incRes.json();
@@ -249,7 +332,7 @@ document.addEventListener('DOMContentLoaded', () => {
             renderAll();
         } catch (err) {
             console.error('DB error:', err);
-            alert('Cannot connect to database. Check your connection or MongoDB IP whitelist.');
+            alert('Cannot connect to database. Check your connection.');
         } finally {
             hideLoading();
         }
@@ -263,11 +346,27 @@ document.addEventListener('DOMContentLoaded', () => {
         const amount      = parseFloat(document.getElementById('income-amount').value);
         if (!date || !description || isNaN(amount) || amount <= 0) return;
 
+        if (state.isGuest) {
+            const newItem = {
+                _id: 'guest_inc_' + Date.now(),
+                date,
+                description,
+                amount
+            };
+            state.incomes.unshift(newItem);
+            saveGuestData();
+            calcTotals();
+            renderAll();
+            document.getElementById('income-desc').value   = '';
+            document.getElementById('income-amount').value = '';
+            return;
+        }
+
         showLoading();
         try {
             const res = await fetch(`${API_URL}/incomes`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: getHeaders(),
                 body: JSON.stringify({ date, description, amount })
             });
             const newItem = await res.json();
@@ -289,11 +388,28 @@ document.addEventListener('DOMContentLoaded', () => {
         const amount      = parseFloat(document.getElementById('expense-amount').value);
         if (!date || !description || !category || isNaN(amount) || amount <= 0) return;
 
+        if (state.isGuest) {
+            const newItem = {
+                _id: 'guest_exp_' + Date.now(),
+                date,
+                description,
+                category,
+                amount
+            };
+            state.expenses.unshift(newItem);
+            saveGuestData();
+            renderAll();
+            document.getElementById('expense-desc').value     = '';
+            document.getElementById('expense-amount').value   = '';
+            document.getElementById('expense-category').value = '';
+            return;
+        }
+
         showLoading();
         try {
             const res = await fetch(`${API_URL}/expenses`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: getHeaders(),
                 body: JSON.stringify({ date, description, category, amount })
             });
             const newItem = await res.json();
@@ -308,9 +424,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ─── DELETE ───────────────────────────────────────────────────
     window.deleteIncome = async (id) => {
+        if (state.isGuest) {
+            state.incomes = state.incomes.filter(i => i._id !== id);
+            saveGuestData();
+            calcTotals();
+            renderAll();
+            return;
+        }
+
         showLoading();
         try {
-            await fetch(`${API_URL}/incomes/${id}`, { method: 'DELETE' });
+            await fetch(`${API_URL}/incomes/${id}`, { method: 'DELETE', headers: getHeaders() });
             state.incomes = state.incomes.filter(i => i._id !== id);
             calcTotals();
             renderAll();
@@ -319,9 +443,16 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     window.deleteExpense = async (id) => {
+        if (state.isGuest) {
+            state.expenses = state.expenses.filter(e => e._id !== id);
+            saveGuestData();
+            renderAll();
+            return;
+        }
+
         showLoading();
         try {
-            await fetch(`${API_URL}/expenses/${id}`, { method: 'DELETE' });
+            await fetch(`${API_URL}/expenses/${id}`, { method: 'DELETE', headers: getHeaders() });
             state.expenses = state.expenses.filter(e => e._id !== id);
             renderAll();
         } catch (err) { console.error(err); }
@@ -391,6 +522,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         renderSummary();
+        updateCharts();
     };
 
     // ─── RENDER SUMMARY ───────────────────────────────────────────
@@ -516,6 +648,367 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('deposit-results').style.display = 'block';
     });
 
+    // ─── CHARTS MANAGEMENT (CHART.JS) ─────────────────────────────
+    const initCharts = () => {
+        const ctx1 = document.getElementById('categoryChart')?.getContext('2d');
+        const ctx2 = document.getElementById('trendChart')?.getContext('2d');
+        if (!ctx1 || !ctx2) return;
+
+        if (categoryChart) categoryChart.destroy();
+        if (trendChart) trendChart.destroy();
+
+        const isDark = state.theme === 'dark';
+        const gridColor = isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)';
+        const textColor = isDark ? '#8b949e' : '#64748b';
+
+        // Category Breakdown Chart
+        categoryChart = new Chart(ctx1, {
+            type: 'doughnut',
+            data: {
+                labels: state.lang === 'si'
+                    ? ['ඉතිරි කිරීම් (20%)', 'අවශ්‍යතා (Spent)', 'වුවමනා (Spent)', 'අවශ්‍යතා ඉතිරිය', 'වුවමනා ඉතිරිය']
+                    : ['Savings (20%)', 'Needs (Spent)', 'Wants (Spent)', 'Needs Rem.', 'Wants Rem.'],
+                datasets: [{
+                    data: [0, 0, 0, 0, 0],
+                    backgroundColor: [
+                        '#4dccbd', 
+                        '#f0a03f', 
+                        '#7c6af7', 
+                        'rgba(240, 160, 63, 0.2)', 
+                        'rgba(124, 106, 247, 0.2)'
+                    ],
+                    borderWidth: isDark ? 2 : 1,
+                    borderColor: isDark ? '#161b22' : '#ffffff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                        labels: {
+                            color: textColor,
+                            font: { family: 'Plus Jakarta Sans', size: 10, weight: '600' }
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: (context) => ` ${context.label}: Rs. ${context.raw.toLocaleString('en-LK')}`
+                        }
+                    }
+                }
+            }
+        });
+
+        // Income vs Expense Trend
+        trendChart = new Chart(ctx2, {
+            type: 'bar',
+            data: {
+                labels: [],
+                datasets: [
+                    {
+                        label: state.lang === 'si' ? 'ආදායම' : 'Income',
+                        data: [],
+                        backgroundColor: '#4dccbd',
+                        borderRadius: 4
+                    },
+                    {
+                        label: state.lang === 'si' ? 'වියදම' : 'Expense',
+                        data: [],
+                        backgroundColor: '#f56565',
+                        borderRadius: 4
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        labels: {
+                            color: textColor,
+                            font: { family: 'Plus Jakarta Sans', size: 10, weight: '600' }
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: (context) => ` ${context.dataset.label}: Rs. ${context.raw.toLocaleString('en-LK')}`
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: { display: false },
+                        ticks: { color: textColor, font: { family: 'Plus Jakarta Sans', size: 9 } }
+                    },
+                    y: {
+                        grid: { color: gridColor },
+                        ticks: { color: textColor, font: { family: 'Plus Jakarta Sans', size: 9 } }
+                    }
+                }
+            }
+        });
+    };
+
+    const updateCharts = () => {
+        if (!categoryChart || !trendChart) {
+            initCharts();
+        }
+        if (!categoryChart || !trendChart) return;
+
+        let spentNeeds = 0, spentWants = 0;
+        state.expenses.forEach(e => {
+            if (e.category === 'need') spentNeeds += e.amount;
+            else                       spentWants += e.amount;
+        });
+
+        const remNeeds = Math.max(0, state.budget.needs - spentNeeds);
+        const remWants = Math.max(0, state.budget.wants - spentWants);
+        const savings = state.budget.savings;
+
+        categoryChart.data.datasets[0].data = [
+            savings,
+            spentNeeds,
+            spentWants,
+            remNeeds,
+            remWants
+        ];
+        categoryChart.update();
+
+        // Trend aggregation (Group by date)
+        const dateMap = {};
+        state.incomes.forEach(i => {
+            const d = i.date.substring(0, 10);
+            if (!dateMap[d]) dateMap[d] = { income: 0, expense: 0 };
+            dateMap[d].income += i.amount;
+        });
+        state.expenses.forEach(e => {
+            const d = e.date.substring(0, 10);
+            if (!dateMap[d]) dateMap[d] = { income: 0, expense: 0 };
+            dateMap[d].expense += e.amount;
+        });
+
+        const sortedDates = Object.keys(dateMap).sort().slice(-7);
+        trendChart.data.labels = sortedDates.map(d => fmtDate(d));
+        trendChart.data.datasets[0].data = sortedDates.map(d => dateMap[d].income);
+        trendChart.data.datasets[1].data = sortedDates.map(d => dateMap[d].expense);
+        trendChart.update();
+    };
+
+    // ─── AUTHENTICATION PORTAL LOGIC ──────────────────────────────
+    
+    // Tab toggle
+    tabLoginBtn.addEventListener('click', () => {
+        tabLoginBtn.classList.add('active');
+        tabRegisterBtn.classList.remove('active');
+        loginForm.classList.add('active');
+        registerForm.classList.remove('active');
+    });
+
+    tabRegisterBtn.addEventListener('click', () => {
+        tabRegisterBtn.classList.add('active');
+        tabLoginBtn.classList.remove('active');
+        registerForm.classList.add('active');
+        loginForm.classList.remove('active');
+    });
+
+    // Forms submission handlers
+    loginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const email = document.getElementById('login-email').value;
+        const password = document.getElementById('login-password').value;
+
+        showLoading("Signing In...");
+        try {
+            const res = await fetch(`${API_URL}/auth/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password })
+            });
+
+            if (!res.ok) {
+                const errData = await res.json();
+                throw new Error(errData.message || 'Login failed');
+            }
+
+            const data = await res.json();
+            localStorage.setItem('ft_token', data.token);
+            localStorage.setItem('ft_user', JSON.stringify(data.user));
+            localStorage.setItem('ft_is_guest', 'false');
+
+            state.token = data.token;
+            state.user = data.user;
+            state.isGuest = false;
+
+            initSession();
+        } catch (err) {
+            alert(err.message);
+        } finally {
+            hideLoading();
+        }
+    });
+
+    registerForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const name = document.getElementById('reg-name').value;
+        const email = document.getElementById('reg-email').value;
+        const password = document.getElementById('reg-password').value;
+
+        showLoading("Creating Account...");
+        try {
+            const res = await fetch(`${API_URL}/auth/register`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, email, password })
+            });
+
+            if (!res.ok) {
+                const errData = await res.json();
+                throw new Error(errData.message || 'Registration failed');
+            }
+
+            const data = await res.json();
+            localStorage.setItem('ft_token', data.token);
+            localStorage.setItem('ft_user', JSON.stringify(data.user));
+            localStorage.setItem('ft_is_guest', 'false');
+
+            state.token = data.token;
+            state.user = data.user;
+            state.isGuest = false;
+
+            initSession();
+        } catch (err) {
+            alert(err.message);
+        } finally {
+            hideLoading();
+        }
+    });
+
+    // Guest Mode
+    guestLoginBtn.addEventListener('click', () => {
+        localStorage.setItem('ft_token', 'guest_token');
+        localStorage.setItem('ft_user', JSON.stringify({ name: 'Guest User', email: 'guest@finance.lk', picture: '' }));
+        localStorage.setItem('ft_is_guest', 'true');
+
+        state.token = 'guest_token';
+        state.user = { name: 'Guest User', email: 'guest@finance.lk', picture: '' };
+        state.isGuest = true;
+
+        initSession();
+    });
+
+    // Profile Dropdown
+    profileTrigger.addEventListener('click', (e) => {
+        e.stopPropagation();
+        profileMenu.classList.toggle('open');
+    });
+
+    document.addEventListener('click', () => {
+        profileMenu.classList.remove('open');
+    });
+
+    // Logout
+    logoutBtn.addEventListener('click', () => {
+        localStorage.removeItem('ft_token');
+        localStorage.removeItem('ft_user');
+        localStorage.removeItem('ft_is_guest');
+
+        state.token = '';
+        state.user = null;
+        state.isGuest = false;
+        state.incomes = [];
+        state.expenses = [];
+
+        if (categoryChart) { categoryChart.destroy(); categoryChart = null; }
+        if (trendChart) { trendChart.destroy(); trendChart = null; }
+
+        initSession();
+    });
+
+    // Google Sign-In SDK Initialization
+    const initGoogleSignIn = () => {
+        if (typeof google === 'undefined') {
+            setTimeout(initGoogleSignIn, 1000);
+            return;
+        }
+
+        google.accounts.id.initialize({
+            client_id: "898516089332-dummyid.apps.googleusercontent.com",
+            callback: handleGoogleCredentialResponse,
+            auto_select: false
+        });
+
+        google.accounts.id.renderButton(
+            document.getElementById("google-signin-button"),
+            { theme: "outline", size: "large", width: "100%", shape: "rectangular" }
+        );
+    };
+
+    const handleGoogleCredentialResponse = async (response) => {
+        showLoading("Signing in with Google...");
+        try {
+            const res = await fetch(`${API_URL}/auth/google`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ credential: response.credential })
+            });
+
+            if (!res.ok) {
+                const errData = await res.json();
+                throw new Error(errData.message || 'Google Auth Failed');
+            }
+
+            const data = await res.json();
+            localStorage.setItem('ft_token', data.token);
+            localStorage.setItem('ft_user', JSON.stringify(data.user));
+            localStorage.setItem('ft_is_guest', 'false');
+            
+            state.token = data.token;
+            state.user = data.user;
+            state.isGuest = false;
+
+            initSession();
+        } catch (err) {
+            console.error(err);
+            alert("Google Sign-In failed. Try standard account or Guest Mode.");
+        } finally {
+            hideLoading();
+        }
+    };
+
+    // Session Initialization
+    const initSession = () => {
+        if (state.token) {
+            authPortal.style.display = 'none';
+            mainApp.style.display = 'block';
+
+            if (state.user) {
+                profileMenu.style.display = 'inline-block';
+                profileName.textContent = state.user.name;
+                profileEmail.textContent = state.user.email;
+                if (state.user.picture) {
+                    userAvatar.src = state.user.picture;
+                    userAvatar.style.display = 'block';
+                    userIcon.style.display = 'none';
+                } else {
+                    userAvatar.style.display = 'none';
+                    userIcon.style.display = 'block';
+                }
+            }
+
+            if (state.isGuest) {
+                loadGuestData();
+            } else {
+                fetchData();
+            }
+        } else {
+            authPortal.style.display = 'flex';
+            mainApp.style.display = 'none';
+            profileMenu.style.display = 'none';
+        }
+    };
+
     // ─── INIT ─────────────────────────────────────────────────────
     applyTheme();
     applyLanguage();
@@ -524,5 +1017,9 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('income-date').value  = today;
     document.getElementById('expense-date').value = today;
 
-    fetchData();
+    // Load active session on boot
+    initSession();
+    
+    // Lazy load Google SDK
+    initGoogleSignIn();
 });
