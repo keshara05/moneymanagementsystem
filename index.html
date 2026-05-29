@@ -8,9 +8,8 @@
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <!-- External Scripts for Auth & Charts -->
-    <script src="https://accounts.google.com/gsi/client" async defer></script>
+
+    <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <!-- PWA Support -->
@@ -31,455 +30,369 @@
         <p id="loading-text">Syncing with Database...</p>
     </div>
 
-    <!-- ===== AUTH PORTAL SCREEN ===== -->
-    <div id="auth-portal" class="auth-portal">
-        <div class="auth-card">
-            <div class="auth-logo">
+    <!-- Top Navigation Bar -->
+    <nav class="top-nav">
+        <div class="nav-inner">
+            <div class="logo">
                 <div class="logo-icon"><i class="fa-solid fa-wallet"></i></div>
-                <h2>FinanceTracker</h2>
-                <p data-i18n="auth_subtitle">Smart Money Management</p>
+                <span class="logo-text" data-i18n="app_title">FinanceTracker</span>
+                <span class="logo-badge">LK</span>
             </div>
-            
-            <div class="auth-tabs">
-                <button class="auth-tab active" id="tab-login-btn" data-i18n="login">Login</button>
-                <button class="auth-tab" id="tab-register-btn" data-i18n="register">Register</button>
+            <div class="nav-tabs">
+                <button class="nav-tab active" onclick="switchTab('dashboard', this)" data-i18n="tab_dashboard">Dashboard</button>
+                <button class="nav-tab" onclick="switchTab('reports', this)" data-i18n="tab_reports">Reports</button>
             </div>
-
-            <!-- Login Form -->
-            <form id="login-form" class="auth-form active" autocomplete="on">
-                <div class="field">
-                    <label for="login-email" data-i18n="email_address">Email Address</label>
-                    <input type="email" id="login-email" placeholder="email@example.com" required>
-                </div>
-                <div class="field">
-                    <label for="login-password" data-i18n="password">Password</label>
-                    <input type="password" id="login-password" placeholder="••••••••" required>
-                </div>
-                <button type="submit" class="auth-submit-btn">
-                    <span data-i18n="signin">Sign In</span>
-                    <i class="fa-solid fa-right-to-bracket"></i>
+            <div class="nav-controls">
+                <button id="lang-toggle" class="ctrl-btn" title="Change Language">
+                    <span id="current-lang">සිං</span>
                 </button>
-            </form>
-
-            <!-- Register Form -->
-            <form id="register-form" class="auth-form" autocomplete="on">
-                <div class="field">
-                    <label for="reg-name" data-i18n="full_name">Full Name</label>
-                    <input type="text" id="reg-name" placeholder="E.g. Amal Perera">
-                </div>
-                <div class="field">
-                    <label for="reg-email" data-i18n="email_address">Email Address</label>
-                    <input type="email" id="reg-email" placeholder="email@example.com" required>
-                </div>
-                <div class="field">
-                    <label for="reg-password" data-i18n="password">Password</label>
-                    <input type="password" id="reg-password" placeholder="••••••••" required>
-                </div>
-                <button type="submit" class="auth-submit-btn">
-                    <span data-i18n="create_account">Create Account</span>
-                    <i class="fa-solid fa-user-plus"></i>
+                <button id="theme-toggle" class="ctrl-btn" title="Toggle Theme">
+                    <i class="fa-solid fa-moon" id="theme-icon"></i>
                 </button>
-            </form>
-
-            <div class="auth-divider">
-                <span>OR</span>
             </div>
-
-            <!-- Google Login Button -->
-            <div class="google-btn-wrap">
-                <div id="google-signin-button"></div>
-            </div>
-
-            <!-- Guest Login -->
-            <button id="guest-login-btn" class="guest-btn">
-                <i class="fa-solid fa-user-ninja"></i>
-                <span data-i18n="guest_mode">Continue as Guest (Demo)</span>
-            </button>
         </div>
-    </div>
+    </nav>
 
-    <!-- ===== MAIN APPLICATION SCREEN ===== -->
-    <div id="main-app" style="display:none">
-        
-        <!-- Top Navigation Bar -->
-        <nav class="top-nav">
-            <div class="nav-inner">
-                <div class="logo">
-                    <div class="logo-icon"><i class="fa-solid fa-wallet"></i></div>
-                    <span class="logo-text" data-i18n="app_title">FinanceTracker</span>
-                    <span class="logo-badge">LK</span>
-                </div>
-                <div class="nav-tabs">
-                    <button class="nav-tab active" onclick="switchTab('dashboard', this)" data-i18n="tab_dashboard">Dashboard</button>
-                    <button class="nav-tab" onclick="switchTab('reports', this)" data-i18n="tab_reports">Reports</button>
-                </div>
-                <div class="nav-controls">
-                    <button id="lang-toggle" class="ctrl-btn" title="Change Language">
-                        <span id="current-lang">සිං</span>
-                    </button>
-                    <button id="theme-toggle" class="ctrl-btn" title="Toggle Theme">
-                        <i class="fa-solid fa-moon" id="theme-icon"></i>
-                    </button>
-                    
-                    <!-- Profile dropdown -->
-                    <div class="profile-menu" id="profile-menu">
-                        <button class="profile-trigger ctrl-btn" id="profile-trigger" title="User Profile">
-                            <img id="user-avatar" src="" alt="Avatar" style="display:none">
-                            <i class="fa-solid fa-user" id="user-icon"></i>
-                        </button>
-                        <div class="profile-dropdown" id="profile-dropdown">
-                            <div class="dropdown-header">
-                                <span class="user-name" id="profile-name">User Name</span>
-                                <span class="user-email" id="profile-email">user@example.com</span>
-                            </div>
-                            <div class="dropdown-divider"></div>
-                            <button class="dropdown-item dropdown-item--danger" id="logout-btn">
-                                <i class="fa-solid fa-right-from-bracket"></i>
-                                <span data-i18n="signout">Sign Out</span>
-                            </button>
-                        </div>
-                    </div>
-                </div>
+    <div class="app-wrap">
+
+        <!-- ===== DASHBOARD TAB ===== -->
+        <main id="tab-dashboard" class="tab-pane active">
+
+            <div class="page-header">
+                <h1 data-i18n="main_heading">Smart Money Management</h1>
+                <p data-i18n="sub_heading">Manage your class fees easily</p>
             </div>
-        </nav>
 
-        <div class="app-wrap">
+            <div class="dash-grid">
 
-            <!-- ===== DASHBOARD TAB ===== -->
-            <main id="tab-dashboard" class="tab-pane active">
+                <!-- Left Column -->
+                <div class="dash-col">
 
-                <div class="page-header">
-                    <h1 data-i18n="main_heading">Smart Money Management</h1>
-                    <p data-i18n="sub_heading">Manage your class fees easily</p>
-                </div>
-
-                <div class="dash-grid">
-
-                    <!-- Left Column: Entry forms and logs -->
-                    <div class="dash-col">
-                        <!-- Income Tracker -->
-                        <section class="panel panel--income">
-                            <div class="panel-header">
-                                <div class="panel-icon panel-icon--cyan"><i class="fa-solid fa-hand-holding-dollar"></i></div>
-                                <h2 data-i18n="daily_income">Daily Income Tracker</h2>
-                            </div>
-                            <form id="income-form" class="entry-form" autocomplete="off">
-                                <div class="field-row">
-                                    <div class="field">
-                                        <label for="income-date" data-i18n="date">Date</label>
-                                        <input type="date" id="income-date" required>
-                                    </div>
-                                    <div class="field">
-                                        <label for="income-desc" data-i18n="class_desc">Class / Description</label>
-                                        <input type="text" id="income-desc" placeholder="e.g. Grade 10 Science" required>
-                                    </div>
+                    <!-- Income Tracker -->
+                    <section class="panel panel--income">
+                        <div class="panel-header">
+                            <div class="panel-icon panel-icon--cyan"><i class="fa-solid fa-hand-holding-dollar"></i></div>
+                            <h2 data-i18n="daily_income">Daily Income Tracker</h2>
+                        </div>
+                        <form id="income-form" class="entry-form" autocomplete="off">
+                            <div class="field-row">
+                                <div class="field">
+                                    <label for="income-date" data-i18n="date">Date</label>
+                                    <input type="date" id="income-date" required>
                                 </div>
                                 <div class="field">
-                                    <label for="income-amount" data-i18n="amount_received">Amount Received (Rs.)</label>
-                                    <input type="number" id="income-amount" placeholder="0.00" min="0" step="0.01" required>
+                                    <label for="income-desc" data-i18n="class_desc">Class / Description</label>
+                                    <input type="text" id="income-desc" placeholder="e.g. Grade 10 Science" required>
                                 </div>
-                                <button type="submit" class="add-btn add-btn--cyan">
-                                    <i class="fa-solid fa-plus"></i>
-                                    <span data-i18n="add_income">Add Income</span>
-                                </button>
-                            </form>
-                            <div class="table-wrap" id="income-table-wrap">
-                                <div id="empty-income" class="empty-state">
-                                    <i class="fa-regular fa-folder-open"></i>
-                                    <p data-i18n="no_incomes">No incomes logged yet.</p>
-                                </div>
-                                <table id="incomes-table" style="display:none">
-                                    <thead>
-                                        <tr>
-                                            <th data-i18n="date">Date</th>
-                                            <th data-i18n="class_desc">Class</th>
-                                            <th data-i18n="amount">Amount</th>
-                                            <th></th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="incomes-list"></tbody>
-                                </table>
                             </div>
-                        </section>
+                            <div class="field">
+                                <label for="income-amount" data-i18n="amount_received">Amount Received (Rs.)</label>
+                                <input type="number" id="income-amount" placeholder="0.00" min="0" step="0.01" required>
+                            </div>
+                            <button type="submit" class="add-btn add-btn--cyan">
+                                <i class="fa-solid fa-plus"></i>
+                                <span data-i18n="add_income">Add Income</span>
+                            </button>
+                        </form>
+                        <div class="table-wrap" id="income-table-wrap">
+                            <div id="empty-income" class="empty-state">
+                                <i class="fa-regular fa-folder-open"></i>
+                                <p data-i18n="no_incomes">No incomes logged yet.</p>
+                            </div>
+                            <table id="incomes-table" style="display:none">
+                                <thead>
+                                    <tr>
+                                        <th data-i18n="date">Date</th>
+                                        <th data-i18n="class_desc">Class</th>
+                                        <th data-i18n="amount">Amount</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="incomes-list"></tbody>
+                            </table>
+                        </div>
+                    </section>
 
-                        <!-- Expense Tracker -->
-                        <section class="panel panel--expense" style="margin-top: 1.25rem;">
-                            <div class="panel-header">
-                                <div class="panel-icon panel-icon--amber"><i class="fa-solid fa-cart-shopping"></i></div>
-                                <h2 data-i18n="daily_expense">Daily Expense Tracker</h2>
-                            </div>
-                            <form id="expense-form" class="entry-form" autocomplete="off">
-                                <div class="field-row">
-                                    <div class="field">
-                                        <label for="expense-date" data-i18n="date">Date</label>
-                                        <input type="date" id="expense-date" required>
-                                    </div>
-                                    <div class="field">
-                                        <label for="expense-desc" data-i18n="description">Description</label>
-                                        <input type="text" id="expense-desc" placeholder="e.g. Groceries" required>
-                                    </div>
+                    <!-- Expense Tracker -->
+                    <section class="panel panel--expense" style="margin-top:1.25rem">
+                        <div class="panel-header">
+                            <div class="panel-icon panel-icon--amber"><i class="fa-solid fa-cart-shopping"></i></div>
+                            <h2 data-i18n="daily_expense">Daily Expense Tracker</h2>
+                        </div>
+                        <form id="expense-form" class="entry-form" autocomplete="off">
+                            <div class="field-row">
+                                <div class="field">
+                                    <label for="expense-date" data-i18n="date">Date</label>
+                                    <input type="date" id="expense-date" required>
                                 </div>
-                                <div class="field-row">
-                                    <div class="field">
-                                        <label for="expense-category" data-i18n="category">Category</label>
-                                        <select id="expense-category" required>
-                                            <option value="" disabled selected data-i18n="select">Select...</option>
-                                            <option value="need" data-i18n="need_option">Need / Expense</option>
-                                            <option value="want" data-i18n="want_option">Want</option>
-                                        </select>
-                                    </div>
-                                    <div class="field">
-                                        <label for="expense-amount" data-i18n="amount">Amount (Rs.)</label>
-                                        <input type="number" id="expense-amount" placeholder="0.00" min="0" step="0.01" required>
-                                    </div>
-                                </div>
-                                <button type="submit" class="add-btn add-btn--indigo">
-                                    <i class="fa-solid fa-plus"></i>
-                                    <span data-i18n="add_expense">Add Expense</span>
-                                </button>
-                            </form>
-                            <div class="table-wrap">
-                                <div id="empty-expense" class="empty-state">
-                                    <i class="fa-regular fa-folder-open"></i>
-                                    <p data-i18n="no_expenses">No expenses logged yet.</p>
-                                </div>
-                                <table id="expenses-table" style="display:none">
-                                    <thead>
-                                        <tr>
-                                            <th data-i18n="date">Date</th>
-                                            <th data-i18n="description">Description</th>
-                                            <th data-i18n="category">Cat</th>
-                                            <th data-i18n="amount">Amount</th>
-                                            <th></th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="expenses-list"></tbody>
-                                </table>
-                            </div>
-                        </section>
-                    </div>
-
-                    <!-- Right Column: Visualizations & Summary -->
-                    <div class="dash-col">
-                        <!-- Budget Allocation -->
-                        <section class="panel panel--budget">
-                            <div class="panel-header">
-                                <div class="panel-icon panel-icon--indigo"><i class="fa-solid fa-calculator"></i></div>
-                                <h2 data-i18n="budget_allocation">Budget Allocation</h2>
-                            </div>
-                            <div class="total-display">
-                                <span class="total-label" data-i18n="total_monthly_income">Total Monthly Income</span>
-                                <span class="total-value" id="total-income-amount">Rs. 0.00</span>
-                            </div>
-                            <div class="alloc-grid">
-                                <div class="alloc-card alloc-card--cyan">
-                                    <div class="alloc-bar"></div>
-                                    <span class="alloc-label" data-i18n="savings">Savings (20%)</span>
-                                    <span class="alloc-value" id="savings-amount">Rs. 0.00</span>
-                                </div>
-                                <div class="alloc-card alloc-card--amber">
-                                    <div class="alloc-bar"></div>
-                                    <span class="alloc-label" data-i18n="needs">Needs (50%)</span>
-                                    <span class="alloc-value" id="needs-amount">Rs. 0.00</span>
-                                </div>
-                                <div class="alloc-card alloc-card--rose">
-                                    <div class="alloc-bar"></div>
-                                    <span class="alloc-label" data-i18n="wants">Wants (30%)</span>
-                                    <span class="alloc-value" id="wants-amount">Rs. 0.00</span>
+                                <div class="field">
+                                    <label for="expense-desc" data-i18n="description">Description</label>
+                                    <input type="text" id="expense-desc" placeholder="e.g. Groceries" required>
                                 </div>
                             </div>
-                        </section>
-
-                        <!-- Graphical Analytics (New!) -->
-                        <section class="panel panel--analytics" style="margin-top: 1.25rem;">
-                            <div class="panel-header">
-                                <div class="panel-icon panel-icon--cyan"><i class="fa-solid fa-chart-pie"></i></div>
-                                <h2 data-i18n="visual_analytics">Visual Analytics</h2>
-                            </div>
-                            <div class="charts-wrap">
-                                <div class="chart-container">
-                                    <canvas id="categoryChart"></canvas>
+                            <div class="field-row">
+                                <div class="field">
+                                    <label for="expense-category" data-i18n="category">Category</label>
+                                    <select id="expense-category" required>
+                                        <option value="" disabled selected data-i18n="select">Select...</option>
+                                        <option value="need" data-i18n="need_option">Need / Expense</option>
+                                        <option value="want" data-i18n="want_option">Want</option>
+                                    </select>
                                 </div>
-                                <div class="chart-container" style="margin-top: 1.5rem;">
-                                    <canvas id="trendChart"></canvas>
+                                <div class="field">
+                                    <label for="expense-amount" data-i18n="amount">Amount (Rs.)</label>
+                                    <input type="number" id="expense-amount" placeholder="0.00" min="0" step="0.01" required>
                                 </div>
                             </div>
-                        </section>
-
-                        <!-- Balance Summary -->
-                        <section class="panel panel--summary" style="margin-top: 1.25rem;">
-                            <div class="panel-header">
-                                <div class="panel-icon panel-icon--green"><i class="fa-solid fa-chart-line"></i></div>
-                                <h2 data-i18n="balance_summary">Balance Summary</h2>
+                            <button type="submit" class="add-btn add-btn--indigo">
+                                <i class="fa-solid fa-plus"></i>
+                                <span data-i18n="add_expense">Add Expense</span>
+                            </button>
+                        </form>
+                        <div class="table-wrap">
+                            <div id="empty-expense" class="empty-state">
+                                <i class="fa-regular fa-folder-open"></i>
+                                <p data-i18n="no_expenses">No expenses logged yet.</p>
                             </div>
-
-                            <div class="balance-card balance-card--needs">
-                                <div class="balance-card-top">
-                                    <span data-i18n="needs_balance">Needs Balance</span>
-                                    <i class="fa-solid fa-bolt"></i>
-                                </div>
-                                <div class="balance-row">
-                                    <span data-i18n="allocated">Allocated</span>
-                                    <span id="summary-allocated-needs">Rs. 0.00</span>
-                                </div>
-                                <div class="balance-row">
-                                    <span data-i18n="spent">Spent</span>
-                                    <span id="summary-spent-needs">Rs. 0.00</span>
-                                </div>
-                                <div class="progress-track">
-                                    <div class="progress-fill" id="progress-needs"></div>
-                                </div>
-                                <div class="balance-remaining">
-                                    <span data-i18n="remaining">Remaining</span>
-                                    <span id="summary-remaining-needs">Rs. 0.00</span>
-                                </div>
-                            </div>
-
-                            <div class="balance-card balance-card--wants">
-                                <div class="balance-card-top">
-                                    <span data-i18n="wants_balance">Wants Balance</span>
-                                    <i class="fa-solid fa-heart"></i>
-                                </div>
-                                <div class="balance-row">
-                                    <span data-i18n="allocated">Allocated</span>
-                                    <span id="summary-allocated-wants">Rs. 0.00</span>
-                                </div>
-                                <div class="balance-row">
-                                    <span data-i18n="spent">Spent</span>
-                                    <span id="summary-spent-wants">Rs. 0.00</span>
-                                </div>
-                                <div class="progress-track">
-                                    <div class="progress-fill" id="progress-wants"></div>
-                                </div>
-                                <div class="balance-remaining">
-                                    <span data-i18n="remaining">Remaining</span>
-                                    <span id="summary-remaining-wants">Rs. 0.00</span>
-                                </div>
-                            </div>
-
-                            <div class="total-spent-card">
-                                <span data-i18n="total_monthly_spent">Total Monthly Spent</span>
-                                <span id="total-spent-amount">Rs. 0.00</span>
-                            </div>
-                        </section>
-                    </div>
+                            <table id="expenses-table" style="display:none">
+                                <thead>
+                                    <tr>
+                                        <th data-i18n="date">Date</th>
+                                        <th data-i18n="description">Description</th>
+                                        <th data-i18n="category">Cat</th>
+                                        <th data-i18n="amount">Amount</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="expenses-list"></tbody>
+                            </table>
+                        </div>
+                    </section>
 
                 </div>
-            </main>
 
-            <!-- ===== REPORTS TAB ===== -->
-            <main id="tab-reports" class="tab-pane">
+                <!-- Right Column -->
+                <div class="dash-col">
 
-                <div class="page-header">
-                    <h1 data-i18n="tab_reports">Monthly Reports</h1>
-                    <p data-i18n="reports_desc">Track, analyse and plan your finances</p>
-                </div>
-
-                <!-- Monthly Report Filter -->
-                <section class="panel">
-                    <div class="panel-header">
-                        <div class="panel-icon panel-icon--indigo"><i class="fa-solid fa-file-invoice-dollar"></i></div>
-                        <h2 data-i18n="monthly_report_title">Monthly Report Filter</h2>
-                    </div>
-                    <div class="filter-bar">
-                        <div class="field">
-                            <label for="report-month" data-i18n="select_month">Select Month</label>
-                            <input type="month" id="report-month">
+                    <!-- Budget Allocation -->
+                    <section class="panel panel--budget">
+                        <div class="panel-header">
+                            <div class="panel-icon panel-icon--indigo"><i class="fa-solid fa-calculator"></i></div>
+                            <h2 data-i18n="budget_allocation">Budget Allocation</h2>
                         </div>
-                        <button id="generate-report-btn" class="add-btn add-btn--indigo" style="width:auto;margin-top:1.4rem">
-                            <i class="fa-solid fa-magnifying-glass"></i>
-                            <span data-i18n="generate_report">Generate Report</span>
-                        </button>
-                    </div>
-
-                    <div id="report-results" style="display:none;margin-top:2rem">
-                        <h3 class="report-title" id="report-display-month"></h3>
-                        <div class="report-kpi-grid">
-                            <div class="kpi-card kpi-card--cyan">
-                                <span data-i18n="total_income">Total Income</span>
-                                <strong id="rep-income">Rs. 0.00</strong>
-                            </div>
-                            <div class="kpi-card kpi-card--rose">
-                                <span data-i18n="total_expense">Total Expense</span>
-                                <strong id="rep-expense">Rs. 0.00</strong>
-                            </div>
-                            <div class="kpi-card kpi-card--green" id="savings-kpi">
-                                <span data-i18n="net_savings">Net Savings</span>
-                                <strong id="rep-savings">Rs. 0.00</strong>
-                            </div>
+                        <div class="total-display">
+                            <span class="total-label" data-i18n="total_monthly_income">Total Monthly Income</span>
+                            <span class="total-value" id="total-income-amount">Rs. 0.00</span>
                         </div>
-                        <div class="report-breakdown-grid">
-                            <div>
-                                <h4 data-i18n="income_breakdown">Income Breakdown</h4>
-                                <div class="table-wrap">
-                                    <table id="rep-income-table">
-                                        <thead><tr><th data-i18n="date">Date</th><th data-i18n="class_desc">Class</th><th data-i18n="amount">Amount</th></tr></thead>
-                                        <tbody id="rep-income-list"></tbody>
-                                    </table>
-                                </div>
-                            </div>
-                            <div>
-                                <h4 data-i18n="expense_breakdown">Expense Breakdown</h4>
-                                <div class="table-wrap">
-                                    <table id="rep-expense-table">
-                                        <thead><tr><th data-i18n="date">Date</th><th data-i18n="description">Desc</th><th data-i18n="amount">Amount</th></tr></thead>
-                                        <tbody id="rep-expense-list"></tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                <!-- Bank Deposit Calculator -->
-                <section class="panel" style="margin-top:1.5rem">
-                    <div class="panel-header">
-                        <div class="panel-icon panel-icon--cyan"><i class="fa-solid fa-building-columns"></i></div>
-                        <h2 data-i18n="deposit_calculator_title">Bank Deposit Calculator</h2>
-                    </div>
-                    <p class="panel-desc" data-i18n="deposit_calculator_desc">Select a date range to calculate deposit percentages for accumulated class fees.</p>
-                    <div class="filter-bar">
-                        <div class="field">
-                            <label for="calc-start-date" data-i18n="start_date">Start Date</label>
-                            <input type="date" id="calc-start-date">
-                        </div>
-                        <div class="field">
-                            <label for="calc-end-date" data-i18n="end_date">End Date</label>
-                            <input type="date" id="calc-end-date">
-                        </div>
-                        <button id="calculate-deposit-btn" class="add-btn add-btn--cyan" style="width:auto;margin-top:1.4rem">
-                            <i class="fa-solid fa-calculator"></i>
-                            <span data-i18n="calculate">Calculate</span>
-                        </button>
-                    </div>
-                    <div id="deposit-results" style="display:none;margin-top:1.5rem">
-                        <div class="total-display total-display--accent">
-                            <span class="total-label" data-i18n="selected_period_income">Total Income in Selected Period</span>
-                            <span class="total-value total-value--indigo" id="calc-total-income">Rs. 0.00</span>
-                        </div>
-                        <p class="deposit-split-label" data-i18n="deposit_split">Deposit Split:</p>
                         <div class="alloc-grid">
                             <div class="alloc-card alloc-card--cyan">
                                 <div class="alloc-bar"></div>
                                 <span class="alloc-label" data-i18n="savings">Savings (20%)</span>
-                                <span class="alloc-value" id="calc-savings">Rs. 0.00</span>
+                                <span class="alloc-value" id="savings-amount">Rs. 0.00</span>
                             </div>
                             <div class="alloc-card alloc-card--amber">
                                 <div class="alloc-bar"></div>
                                 <span class="alloc-label" data-i18n="needs">Needs (50%)</span>
-                                <span class="alloc-value" id="calc-needs">Rs. 0.00</span>
+                                <span class="alloc-value" id="needs-amount">Rs. 0.00</span>
                             </div>
                             <div class="alloc-card alloc-card--rose">
                                 <div class="alloc-bar"></div>
                                 <span class="alloc-label" data-i18n="wants">Wants (30%)</span>
-                                <span class="alloc-value" id="calc-wants">Rs. 0.00</span>
+                                <span class="alloc-value" id="wants-amount">Rs. 0.00</span>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Visual Analytics (Chart.js) -->
+                    <section class="panel panel--analytics" style="margin-top:1.25rem">
+                        <div class="panel-header">
+                            <div class="panel-icon panel-icon--cyan"><i class="fa-solid fa-chart-pie"></i></div>
+                            <h2 data-i18n="visual_analytics">Visual Analytics</h2>
+                        </div>
+                        <div class="charts-wrap">
+                            <div class="chart-container" style="height:200px">
+                                <canvas id="categoryChart"></canvas>
+                            </div>
+                            <div class="chart-container" style="height:200px;margin-top:1rem">
+                                <canvas id="trendChart"></canvas>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Balance Summary -->
+                    <section class="panel panel--summary" style="margin-top:1.25rem">
+                        <div class="panel-header">
+                            <div class="panel-icon panel-icon--green"><i class="fa-solid fa-chart-line"></i></div>
+                            <h2 data-i18n="balance_summary">Balance Summary</h2>
+                        </div>
+
+                        <div class="balance-card balance-card--needs">
+                            <div class="balance-card-top">
+                                <span data-i18n="needs_balance">Needs Balance</span>
+                                <i class="fa-solid fa-bolt"></i>
+                            </div>
+                            <div class="balance-row">
+                                <span data-i18n="allocated">Allocated</span>
+                                <span id="summary-allocated-needs">Rs. 0.00</span>
+                            </div>
+                            <div class="balance-row">
+                                <span data-i18n="spent">Spent</span>
+                                <span id="summary-spent-needs">Rs. 0.00</span>
+                            </div>
+                            <div class="progress-track">
+                                <div class="progress-fill" id="progress-needs"></div>
+                            </div>
+                            <div class="balance-remaining">
+                                <span data-i18n="remaining">Remaining</span>
+                                <span id="summary-remaining-needs">Rs. 0.00</span>
+                            </div>
+                        </div>
+
+                        <div class="balance-card balance-card--wants">
+                            <div class="balance-card-top">
+                                <span data-i18n="wants_balance">Wants Balance</span>
+                                <i class="fa-solid fa-heart"></i>
+                            </div>
+                            <div class="balance-row">
+                                <span data-i18n="allocated">Allocated</span>
+                                <span id="summary-allocated-wants">Rs. 0.00</span>
+                            </div>
+                            <div class="balance-row">
+                                <span data-i18n="spent">Spent</span>
+                                <span id="summary-spent-wants">Rs. 0.00</span>
+                            </div>
+                            <div class="progress-track">
+                                <div class="progress-fill" id="progress-wants"></div>
+                            </div>
+                            <div class="balance-remaining">
+                                <span data-i18n="remaining">Remaining</span>
+                                <span id="summary-remaining-wants">Rs. 0.00</span>
+                            </div>
+                        </div>
+
+                        <div class="total-spent-card">
+                            <span data-i18n="total_monthly_spent">Total Monthly Spent</span>
+                            <span id="total-spent-amount">Rs. 0.00</span>
+                        </div>
+                    </section>
+
+                </div>
+
+            </div>
+        </main>
+
+        <!-- ===== REPORTS TAB ===== -->
+        <main id="tab-reports" class="tab-pane">
+
+            <div class="page-header">
+                <h1 data-i18n="tab_reports">Monthly Reports</h1>
+                <p>Track, analyse and plan your finances</p>
+            </div>
+
+            <!-- Monthly Report Filter -->
+            <section class="panel">
+                <div class="panel-header">
+                    <div class="panel-icon panel-icon--indigo"><i class="fa-solid fa-file-invoice-dollar"></i></div>
+                    <h2 data-i18n="monthly_report_title">Monthly Report Filter</h2>
+                </div>
+                <div class="filter-bar">
+                    <div class="field">
+                        <label for="report-month" data-i18n="select_month">Select Month</label>
+                        <input type="month" id="report-month">
+                    </div>
+                    <button id="generate-report-btn" class="add-btn add-btn--indigo" style="width:auto;margin-top:1.4rem">
+                        <i class="fa-solid fa-search"></i>
+                        <span data-i18n="generate_report">Generate Report</span>
+                    </button>
+                </div>
+
+                <div id="report-results" style="display:none;margin-top:2rem">
+                    <h3 class="report-title" id="report-display-month"></h3>
+                    <div class="report-kpi-grid">
+                        <div class="kpi-card kpi-card--cyan">
+                            <span data-i18n="total_income">Total Income</span>
+                            <strong id="rep-income">Rs. 0.00</strong>
+                        </div>
+                        <div class="kpi-card kpi-card--rose">
+                            <span data-i18n="total_expense">Total Expense</span>
+                            <strong id="rep-expense">Rs. 0.00</strong>
+                        </div>
+                        <div class="kpi-card kpi-card--green" id="savings-kpi">
+                            <span data-i18n="net_savings">Net Savings</span>
+                            <strong id="rep-savings">Rs. 0.00</strong>
+                        </div>
+                    </div>
+                    <div class="report-breakdown-grid">
+                        <div>
+                            <h4 data-i18n="income_breakdown">Income Breakdown</h4>
+                            <div class="table-wrap">
+                                <table id="rep-income-table">
+                                    <thead><tr><th data-i18n="date">Date</th><th data-i18n="class_desc">Class</th><th data-i18n="amount">Amount</th></tr></thead>
+                                    <tbody id="rep-income-list"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div>
+                            <h4 data-i18n="expense_breakdown">Expense Breakdown</h4>
+                            <div class="table-wrap">
+                                <table id="rep-expense-table">
+                                    <thead><tr><th data-i18n="date">Date</th><th data-i18n="description">Desc</th><th data-i18n="amount">Amount</th></tr></thead>
+                                    <tbody id="rep-expense-list"></tbody>
+                                </table>
                             </div>
                         </div>
                     </div>
-                </section>
+                </div>
+            </section>
 
-            </main>
-        </div>
+            <!-- Bank Deposit Calculator -->
+            <section class="panel" style="margin-top:1.5rem">
+                <div class="panel-header">
+                    <div class="panel-icon panel-icon--cyan"><i class="fa-solid fa-building-columns"></i></div>
+                    <h2 data-i18n="deposit_calculator_title">Bank Deposit Calculator</h2>
+                </div>
+                <p class="panel-desc" data-i18n="deposit_calculator_desc">Select a date range to calculate deposit percentages for accumulated class fees.</p>
+                <div class="filter-bar">
+                    <div class="field">
+                        <label for="calc-start-date" data-i18n="start_date">Start Date</label>
+                        <input type="date" id="calc-start-date">
+                    </div>
+                    <div class="field">
+                        <label for="calc-end-date" data-i18n="end_date">End Date</label>
+                        <input type="date" id="calc-end-date">
+                    </div>
+                    <button id="calculate-deposit-btn" class="add-btn add-btn--cyan" style="width:auto;margin-top:1.4rem">
+                        <i class="fa-solid fa-calculator"></i>
+                        <span data-i18n="calculate">Calculate</span>
+                    </button>
+                </div>
+                <div id="deposit-results" style="display:none;margin-top:1.5rem">
+                    <div class="total-display total-display--accent">
+                        <span class="total-label" data-i18n="selected_period_income">Total Income in Selected Period</span>
+                        <span class="total-value total-value--indigo" id="calc-total-income">Rs. 0.00</span>
+                    </div>
+                    <p class="deposit-split-label" data-i18n="deposit_split">Deposit Split:</p>
+                    <div class="alloc-grid">
+                        <div class="alloc-card alloc-card--cyan">
+                            <div class="alloc-bar"></div>
+                            <span class="alloc-label" data-i18n="savings">Savings (20%)</span>
+                            <span class="alloc-value" id="calc-savings">Rs. 0.00</span>
+                        </div>
+                        <div class="alloc-card alloc-card--amber">
+                            <div class="alloc-bar"></div>
+                            <span class="alloc-label" data-i18n="needs">Needs (50%)</span>
+                            <span class="alloc-value" id="calc-needs">Rs. 0.00</span>
+                        </div>
+                        <div class="alloc-card alloc-card--rose">
+                            <div class="alloc-bar"></div>
+                            <span class="alloc-label" data-i18n="wants">Wants (30%)</span>
+                            <span class="alloc-value" id="calc-wants">Rs. 0.00</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </main>
     </div>
 
     <script src="script.js"></script>
