@@ -81,13 +81,27 @@
                                     <input type="date" id="income-date" required>
                                 </div>
                                 <div class="field">
-                                    <label for="income-desc" data-i18n="class_desc">Class / Description</label>
-                                    <input type="text" id="income-desc" placeholder="e.g. Grade 10 Science" required>
+                                    <label for="income-grade" data-i18n="class_grade">Grade</label>
+                                    <select id="income-grade" required>
+                                        <option value="Grade 6" data-i18n="grade_6">Grade 6</option>
+                                        <option value="Grade 7" data-i18n="grade_7">Grade 7</option>
+                                        <option value="Grade 8" data-i18n="grade_8">Grade 8</option>
+                                        <option value="Grade 9" data-i18n="grade_9">Grade 9</option>
+                                        <option value="Grade 10" data-i18n="grade_10">Grade 10</option>
+                                        <option value="Grade 11" data-i18n="grade_11">Grade 11</option>
+                                        <option value="Other" selected data-i18n="grade_other">Other</option>
+                                    </select>
                                 </div>
                             </div>
-                            <div class="field">
-                                <label for="income-amount" data-i18n="amount_received">Amount Received (Rs.)</label>
-                                <input type="number" id="income-amount" placeholder="0.00" min="0" step="0.01" required>
+                            <div class="field-row">
+                                <div class="field">
+                                    <label for="income-desc" data-i18n="description">Description</label>
+                                    <input type="text" id="income-desc" placeholder="e.g. Class Fees" required>
+                                </div>
+                                <div class="field">
+                                    <label for="income-amount" data-i18n="amount_received">Amount Received (Rs.)</label>
+                                    <input type="number" id="income-amount" placeholder="0.00" min="0" step="0.01" required>
+                                </div>
                             </div>
                             <button type="submit" class="add-btn add-btn--cyan">
                                 <i class="fa-solid fa-plus"></i>
@@ -103,7 +117,8 @@
                                 <thead>
                                     <tr>
                                         <th data-i18n="date">Date</th>
-                                        <th data-i18n="class_desc">Class</th>
+                                        <th data-i18n="class_grade">Grade</th>
+                                        <th data-i18n="description">Description</th>
                                         <th data-i18n="amount">Amount</th>
                                         <th></th>
                                     </tr>
@@ -216,6 +231,9 @@
                             <div class="chart-container" style="height:200px;margin-top:1rem">
                                 <canvas id="trendChart"></canvas>
                             </div>
+                            <div class="chart-container" style="height:200px;margin-top:1rem">
+                                <canvas id="gradeChart"></canvas>
+                            </div>
                         </div>
                     </section>
 
@@ -322,12 +340,18 @@
                             <strong id="rep-savings">Rs. 0.00</strong>
                         </div>
                     </div>
+                    <!-- Grade-wise Income Breakdown Summary -->
+                    <div style="margin-top: 1.5rem; margin-bottom: 1.5rem;">
+                        <h4 data-i18n="income_by_grade_title" style="font-size:0.8rem; font-weight:600; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:0.75rem;">Income by Grade / Class</h4>
+                        <div class="grade-breakdown-grid" id="rep-grade-breakdown-list"></div>
+                    </div>
+
                     <div class="report-breakdown-grid">
                         <div>
                             <h4 data-i18n="income_breakdown">Income Breakdown</h4>
                             <div class="table-wrap">
                                 <table id="rep-income-table">
-                                    <thead><tr><th data-i18n="date">Date</th><th data-i18n="class_desc">Class</th><th data-i18n="amount">Amount</th></tr></thead>
+                                    <thead><tr><th data-i18n="date">Date</th><th data-i18n="class_grade">Grade</th><th data-i18n="description">Description</th><th data-i18n="amount">Amount</th></tr></thead>
                                     <tbody id="rep-income-list"></tbody>
                                 </table>
                             </div>

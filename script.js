@@ -51,6 +51,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // ─── CHART INSTANCES ──────────────────────────────────────────
     let categoryChart = null;
     let trendChart    = null;
+    let gradeChart    = null;
 
     // ─── TRANSLATIONS ─────────────────────────────────────────────
     const i18n = {
@@ -114,6 +115,15 @@ document.addEventListener('DOMContentLoaded', () => {
             chart_wants_rem: 'Wants Rem.',
             chart_income: 'Income',
             chart_expense: 'Expense',
+            class_grade: 'Grade',
+            grade_6: 'Grade 6',
+            grade_7: 'Grade 7',
+            grade_8: 'Grade 8',
+            grade_9: 'Grade 9',
+            grade_10: 'Grade 10',
+            grade_11: 'Grade 11',
+            grade_other: 'Other',
+            income_by_grade_title: 'Income by Grade / Class',
         },
         si: {
             app_title: 'මූල්‍ය කළමනාකරු',
@@ -175,6 +185,15 @@ document.addEventListener('DOMContentLoaded', () => {
             chart_wants_rem: 'වුවමනා ඉතිරිය',
             chart_income: 'ආදායම',
             chart_expense: 'වියදම',
+            class_grade: 'ශ්‍රේණිය',
+            grade_6: '6 ශ්‍රේණිය',
+            grade_7: '7 ශ්‍රේණිය',
+            grade_8: '8 ශ්‍රේණිය',
+            grade_9: '9 ශ්‍රේණිය',
+            grade_10: '10 ශ්‍රේණිය',
+            grade_11: '11 ශ්‍රේණිය',
+            grade_other: 'වෙනත්',
+            income_by_grade_title: 'පන්ති මට්ටම් අනුව ආදායම',
         }
     };
 
@@ -283,6 +302,7 @@ document.addEventListener('DOMContentLoaded', () => {
     incomeForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         const date        = document.getElementById('income-date').value;
+        const grade       = document.getElementById('income-grade').value;
         const description = document.getElementById('income-desc').value.trim();
         const amount      = parseFloat(document.getElementById('income-amount').value);
         if (!date || !description || isNaN(amount) || amount <= 0) return;
@@ -292,7 +312,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const res = await fetch(`${API_URL}/incomes`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ date, description, amount })
+                body: JSON.stringify({ date, description, amount, grade })
             });
             const newItem = await res.json();
             state.incomes.unshift(newItem);
@@ -300,6 +320,7 @@ document.addEventListener('DOMContentLoaded', () => {
             renderAll();
             document.getElementById('income-desc').value   = '';
             document.getElementById('income-amount').value = '';
+            document.getElementById('income-grade').value  = 'Other';
         } catch (err) { console.error(err); }
         finally { hideLoading(); }
     });
@@ -371,9 +392,15 @@ document.addEventListener('DOMContentLoaded', () => {
             emptyIncome.style.display  = 'none';
             incomesTable.style.display = 'table';
             state.incomes.forEach(inc => {
+                const gradeVal = inc.grade || 'Other';
+                const gradeCls = 'badge-' + gradeVal.toLowerCase().replace(' ', '');
+                const gradeKey = 'grade_' + gradeVal.toLowerCase().replace(' ', '_');
+                const gradeTxt = dict[gradeKey] || gradeVal;
+
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td>${fmtDate(inc.date)}</td>
+                    <td><span class="badge ${gradeCls}">${gradeTxt}</span></td>
                     <td>${inc.description}</td>
                     <td style="font-weight:700;color:var(--cyan);font-family:var(--mono)">
                         +${fmt(inc.amount)}
@@ -481,13 +508,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const incBody = document.getElementById('rep-income-list');
         incBody.innerHTML = filtInc.length
-            ? filtInc.map(i => `
+            ? filtInc.map(i => {
+                const gradeVal = i.grade || 'Other';
+                const gradeCls = 'badge-' + gradeVal.toLowerCase().replace(' ', '');
+                const gradeKey = 'grade_' + gradeVal.toLowerCase().replace(' ', '_');
+                const gradeTxt = dict[gradeKey] || gradeVal;
+                return `
                 <tr>
                     <td>${fmtDate(i.date)}</td>
+                    <td><span class="badge ${gradeCls}">${gradeTxt}</span></td>
                     <td>${i.description}</td>
                     <td style="color:var(--cyan);font-family:var(--mono);font-weight:600">${fmt(i.amount)}</td>
-                </tr>`).join('')
-            : '<tr><td colspan="3" style="text-align:center;color:var(--text-subtle);padding:1.5rem">No data</td></tr>';
+                </tr>`;
+            }).join('')
+            : '<tr><td colspan="4" style="text-align:center;color:var(--text-subtle);padding:1.5rem">No data</td></tr>';
 
         const expBody = document.getElementById('rep-expense-list');
         expBody.innerHTML = filtExp.length
@@ -498,6 +532,43 @@ document.addEventListener('DOMContentLoaded', () => {
                     <td style="font-family:var(--mono);font-weight:600">${fmt(e.amount)}</td>
                 </tr>`).join('')
             : '<tr><td colspan="3" style="text-align:center;color:var(--text-subtle);padding:1.5rem">No data</td></tr>';
+
+        // Calculate and render Grade Breakdown Cards in Reports
+        const repGradeTotals = {
+            'Grade 6': 0,
+            'Grade 7': 0,
+            'Grade 8': 0,
+            'Grade 9': 0,
+            'Grade 10': 0,
+            'Grade 11': 0,
+            'Other': 0
+        };
+        filtInc.forEach(i => {
+            const g = i.grade || 'Other';
+            if (repGradeTotals[g] !== undefined) repGradeTotals[g] += i.amount;
+            else repGradeTotals['Other'] += i.amount;
+        });
+
+        const repGradeList = document.getElementById('rep-grade-breakdown-list');
+        const gradesConfig = [
+            { id: 'g6', key: 'grade_6', label: 'Grade 6', val: repGradeTotals['Grade 6'] },
+            { id: 'g7', key: 'grade_7', label: 'Grade 7', val: repGradeTotals['Grade 7'] },
+            { id: 'g8', key: 'grade_8', label: 'Grade 8', val: repGradeTotals['Grade 8'] },
+            { id: 'g9', key: 'grade_9', label: 'Grade 9', val: repGradeTotals['Grade 9'] },
+            { id: 'g10', key: 'grade_10', label: 'Grade 10', val: repGradeTotals['Grade 10'] },
+            { id: 'g11', key: 'grade_11', label: 'Grade 11', val: repGradeTotals['Grade 11'] },
+            { id: 'gother', key: 'grade_other', label: 'Other', val: repGradeTotals['Other'] }
+        ];
+
+        repGradeList.innerHTML = gradesConfig.map(gc => {
+            const gradeLabel = dict[gc.key] || gc.label;
+            return `
+                <div class="grade-badge-card ${gc.id}">
+                    <span class="grade-badge-label">${gradeLabel}</span>
+                    <span class="grade-badge-value">${fmt(gc.val)}</span>
+                </div>
+            `;
+        }).join('');
 
         document.getElementById('report-results').style.display = 'block';
     });
@@ -542,10 +613,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const initCharts = () => {
         const ctx1 = document.getElementById('categoryChart')?.getContext('2d');
         const ctx2 = document.getElementById('trendChart')?.getContext('2d');
-        if (!ctx1 || !ctx2) return;
+        const ctx3 = document.getElementById('gradeChart')?.getContext('2d');
+        if (!ctx1 || !ctx2 || !ctx3) return;
 
         if (categoryChart) categoryChart.destroy();
         if (trendChart)    trendChart.destroy();
+        if (gradeChart)    gradeChart.destroy();
 
         const dict    = i18n[state.lang];
         const isDark  = state.theme === 'dark';
@@ -630,13 +703,51 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
         });
+
+        const gradeLabels = [
+            dict.grade_6,
+            dict.grade_7,
+            dict.grade_8,
+            dict.grade_9,
+            dict.grade_10,
+            dict.grade_11,
+            dict.grade_other
+        ];
+
+        gradeChart = new Chart(ctx3, {
+            type: 'doughnut',
+            data: {
+                labels: gradeLabels,
+                datasets: [{
+                    data: [0, 0, 0, 0, 0, 0, 0],
+                    backgroundColor: ['#4dccbd', '#7c6af7', '#f0a03f', '#3b82f6', '#ec4899', '#10b981', '#6b7280'],
+                    borderWidth: isDark ? 2 : 1,
+                    borderColor: isDark ? '#161b22' : '#ffffff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                        labels: { color: txtClr, font: { family: 'Plus Jakarta Sans', size: 10, weight: '600' } }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: (ctx) => ` ${ctx.label}: Rs. ${ctx.raw.toLocaleString('en-LK')}`
+                        }
+                    }
+                }
+            }
+        });
     };
 
     const updateCharts = () => {
-        if (!categoryChart || !trendChart) {
+        if (!categoryChart || !trendChart || !gradeChart) {
             initCharts();
         }
-        if (!categoryChart || !trendChart) return;
+        if (!categoryChart || !trendChart || !gradeChart) return;
 
         let spentNeeds = 0, spentWants = 0;
         state.expenses.forEach(e => {
@@ -655,6 +766,33 @@ document.addEventListener('DOMContentLoaded', () => {
             remWants
         ];
         categoryChart.update();
+
+        // Calculate Grade-wise totals
+        const gradeTotals = {
+            'Grade 6': 0,
+            'Grade 7': 0,
+            'Grade 8': 0,
+            'Grade 9': 0,
+            'Grade 10': 0,
+            'Grade 11': 0,
+            'Other': 0
+        };
+        state.incomes.forEach(i => {
+            const g = i.grade || 'Other';
+            if (gradeTotals[g] !== undefined) gradeTotals[g] += i.amount;
+            else gradeTotals['Other'] += i.amount;
+        });
+
+        gradeChart.data.datasets[0].data = [
+            gradeTotals['Grade 6'],
+            gradeTotals['Grade 7'],
+            gradeTotals['Grade 8'],
+            gradeTotals['Grade 9'],
+            gradeTotals['Grade 10'],
+            gradeTotals['Grade 11'],
+            gradeTotals['Other']
+        ];
+        gradeChart.update();
 
         // Group by date for trend - last 7 active dates
         const dateMap = {};

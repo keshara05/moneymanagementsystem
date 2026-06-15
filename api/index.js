@@ -52,7 +52,8 @@ app.post('/api/incomes', async (req, res) => {
     const income = new Income({
         date: req.body.date,
         description: req.body.description,
-        amount: req.body.amount
+        amount: req.body.amount,
+        grade: req.body.grade || 'Other'
     });
 
     try {
